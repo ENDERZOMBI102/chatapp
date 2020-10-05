@@ -3,4 +3,4 @@ image:
 
 tasks:
   - init: echo ""
-    command: 'clear && python src/server.py'
+    command: 'clear && python src/server/server.py'
