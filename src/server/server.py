@@ -14,6 +14,7 @@ class Server(ss.ThreadingTCPServer, ss.TCPServer):
 	ADDR = '0.0.0.0'
 	running: bool = True
 	clients: Dict[str, ReqHander] = {}
+	usernames: Dict[str, str] = {}
 	socket: socket
 
 	def __init__(self):
@@ -35,10 +36,14 @@ class Server(ss.ThreadingTCPServer, ss.TCPServer):
 			except OSError:
 				toRemove.append( key )
 		for i in toRemove:
-			del self.cliens[i]
+			del self.clients[i]
 
 
 if __name__ == '__main__':
 	with Server() as server:
-		while True:
-			pass
+		try:
+			while True:
+				pass
+		except KeyboardInterrupt:
+			server.server_close()
+			server.socket.detach()
