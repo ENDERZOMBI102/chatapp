@@ -3,9 +3,10 @@ from typing import Tuple
 import socketserver as ss
 
 
-class ReqHander(ss.StreamRequestHandler):
+class ReqHandler(ss.StreamRequestHandler):
 
 	request: socket.socket
+	server: 'Server'
 	client_address: Tuple[str, int]
 	str_address: str
 	Running: bool = True
@@ -17,7 +18,7 @@ class ReqHander(ss.StreamRequestHandler):
 		while self.Running:
 			try:
 				raw_size = self.request.recv(64)
-			except ConnectionResetError or ConnectionAbortedError:
+			except (ConnectionResetError, ConnectionAbortedError):
 				self.Running = False
 				self.request.close()
 				self.request.detach()
@@ -26,16 +27,19 @@ class ReqHander(ss.StreamRequestHandler):
 				return
 			size = int.from_bytes( raw_size, 'little' )
 			msg = self.request.recv(size).decode()
-			if msg in [' ', '']:
+			if msg in (' ', ''):
 				continue
 			if msg.startswith(':'):
 				cmd = msg.replace(':', '', 1).split(':')
 				if cmd[0] == 'CHGUNAME':
-					oldname = self.server.usernames[self.str_address]
+					try:
+						oldname = self.server.usernames[self.str_address]
+					except KeyError:
+						oldname = 'unregistered'
 					self.server.usernames[self.str_address] = cmd[1]
 					self.server.send(msg=f'{oldname} changed his name to {cmd[1]}', sender=self.str_address)
 					self.send( msg=f'changed name to {cmd[1]}'.encode() )
-				if cmd[0] == 'SSERVER':
+				elif cmd[0] == 'SSERVER':
 					raise KeyboardInterrupt
 				continue
 			print(f'[{self.client_address[0]}] received message: {msg}')
@@ -45,6 +49,8 @@ class ReqHander(ss.StreamRequestHandler):
 		if self.Running and self.request:
 			print(f'{self.client_address[0]}: sending')
 			header = int.to_bytes( len(msg), length=64, byteorder='little')
+			# print(header)
 			self.request.send( header )
+			# print(msg)
 			self.request.send( msg )
 

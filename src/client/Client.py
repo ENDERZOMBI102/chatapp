@@ -1,23 +1,22 @@
 import socket
 from typing import Tuple, Callable
 import threading
-import os
 
 
 class Client:
 
 	socket: socket.socket
-	ADDR: str = '79.56.68.176'  # '127.0.0.1'
+	ADDR: str = '127.0.0.1'
 	PORT: int = 20307
-	Running: bool = True
+	Running: bool = False
 	OnMessage: Callable[ [str], None ]
-	rcvThread: threading.Thread
+	rcvThread: threading.Thread = None
 	ignoreErrors: bool = True
 
 	def __init__(self, ADDR: Tuple[str, int] = None):
 		if ADDR:
 			self.ADDR, self.PORT = ADDR
-		self.socket = socket.create_connection( (self.ADDR, self.PORT) )
+			self.socket = socket.create_connection( (self.ADDR, self.PORT) )
 
 	def SetAddress(self, host: int, port: int = 20307):
 		print(f'changing server to {host}:{port}!')
@@ -33,7 +32,7 @@ class Client:
 		print('new connection created!')
 
 	def SetUsername(self, uname: str):
-		print('changing username to '+uname)
+		print(f'changing username to {uname}')
 		self.Send(f':CHGUNAME:{uname}')
 
 	def GetAddress(self):
@@ -47,6 +46,12 @@ class Client:
 		header = int.to_bytes(len(msg), 64, 'little')
 		self.socket.send(header)
 		self.socket.send(msg)
+
+	def Stop(self):
+		if self.Running:
+			self.Running = False
+			self.rcvThread.join()
+			self.socket.close()
 
 	def Run(self):
 		self.Running = True
@@ -67,7 +72,8 @@ class Client:
 			size = int.from_bytes(raw_size, 'little')
 			if size == 0:
 				continue
+			print(f'incoming message size: {size}')
 			self.OnMessage( self.socket.recv(size).decode() )
 
 	def __del__(self):
-		self.socket.close()
+		self.Stop()

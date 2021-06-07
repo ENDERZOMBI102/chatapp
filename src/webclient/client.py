@@ -22,9 +22,9 @@ def start(ev):
     # open a web socket
     ws = websocket.WebSocket('https://20307-cada719f-7e1e-41c3-b740-01b962abb5a1.ws-eu01.gitpod.io')
     # bind functions to web socket events
-    ws.bind('open',on_open)
-    ws.bind('message',on_message)
-    ws.bind('close',on_close)
+    ws.bind('open', on_open)
+    ws.bind('message', on_message)
+    ws.bind('close', on_close)
 
 
 def send(msg: str):

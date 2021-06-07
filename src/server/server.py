@@ -3,7 +3,7 @@ import threading
 from socket import socket
 from typing import Dict
 
-from ReqHandler import ReqHander
+from ReqHandler import ReqHandler
 
 
 class Server(ss.ThreadingTCPServer, ss.TCPServer):
@@ -13,12 +13,12 @@ class Server(ss.ThreadingTCPServer, ss.TCPServer):
 	PORT = 20307
 	ADDR = '0.0.0.0'
 	running: bool = True
-	clients: Dict[str, ReqHander] = {}
+	clients: Dict[str, ReqHandler] = {}
 	usernames: Dict[str, str] = {}
 	socket: socket
 
 	def __init__(self):
-		super().__init__( (self.ADDR, self.PORT), ReqHander)
+		super().__init__( (self.ADDR, self.PORT), ReqHandler)
 		print('starting server')
 		self.Thread = threading.Thread(target=self.serve_forever, daemon=True)
 		self.Thread.start()

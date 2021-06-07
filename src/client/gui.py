@@ -17,12 +17,11 @@ class App(wx.App):
 		# create Client thread
 		self.client = Client()
 		self.client.SetListener( window.OnMessage )
-		self.client.Run()
-		self.client.SetUsername( window.username )
 		App.instance = self
 		return True
 
 	def OnExit(self) -> int:
+		self.client.Stop()
 		return 0
 
 
@@ -45,14 +44,14 @@ class ClientWindow(wx.Frame):
 		aboutItem = fileMenu.Append(0, 'About')
 		self.Bind(wx.EVT_MENU, self.about, aboutItem)
 		exitItem = fileMenu.Append(1, 'Exit')
-		self.Bind(wx.EVT_MENU, self.exit, exitItem)
+		self.Bind(wx.EVT_MENU, self.OnClose, exitItem)
 		menuBar.Append(fileMenu, 'File')
 
 		# menu: Connection
 		connMenu = wx.Menu()
 		connectToItem = connMenu.Append(2, 'Connect To..')
 		self.Bind(wx.EVT_MENU, self.connectTo, connectToItem)
-		changeUsernameItem = connMenu.Append(2, 'Change username')
+		changeUsernameItem = connMenu.Append(3, 'Change username')
 		self.Bind(wx.EVT_MENU, self.changeUsername, changeUsernameItem)
 		menuBar.Append(connMenu, 'Connection')
 
@@ -63,7 +62,7 @@ class ClientWindow(wx.Frame):
 			parent=self,
 			name='chatLog',
 			pos=(0, 0),
-			size=wx.Size( self.GetSize()[0], 0.70 * self.GetSize()[1] ),
+			size=wx.Size( self.GetSize()[0], int( 0.70 * self.GetSize()[1] ) ),
 			style=wx.TE_READONLY | wx.TE_AUTO_URL | wx.TE_MULTILINE | wx.TE_WORDWRAP
 		)
 		sizer.Add(
@@ -74,7 +73,7 @@ class ClientWindow(wx.Frame):
 			parent=self,
 			name='chatinput',
 			pos=( 0, self.chat.GetSize()[1]+1 ),
-			size=wx.Size( self.GetSize()[0], 0.30 * self.GetSize()[1] ),
+			size=wx.Size( self.GetSize()[0], int( 0.30 * self.GetSize()[1] ) ),
 			style=wx.TE_WORDWRAP | wx.TE_NO_VSCROLL | wx.TE_PROCESS_ENTER
 		)
 		staticSizer.Add(
@@ -83,10 +82,14 @@ class ClientWindow(wx.Frame):
 		)
 		sizer.Add(staticSizer)
 
-		self.Bind( wx.EVT_SIZING, self.OnReSize, self )
+		self.Bind( wx.EVT_CLOSE, self.OnClose, self )
+		self.Bind( wx.EVT_SIZING, self.OnResize, self )
 		self.Bind( wx.EVT_TEXT_ENTER, self.OnEnterPressed, self.input )
 
-	def OnReSize(self, evt: wx.Event):
+	def OnClose(self, evt = None):
+		self.Destroy()
+
+	def OnResize(self, evt: wx.Event):
 		self.chat.SetSize( wx.Size( self.GetSize()[0], 0.70 * self.GetSize()[1] ) )
 		self.input.SetSize( wx.Size( self.GetSize()[0], 0.30 * self.GetSize()[1] ) )
 		self.input.SetPosition( wx.Point( 0, self.chat.GetSize()[1]+1 ) )
@@ -136,9 +139,6 @@ class ClientWindow(wx.Frame):
 			message='Chat "protocol" by ENDERZOMBI102\nApp by ENDERZOMBI102\nUsed frameworks:\n - wxPython\n - socket',
 			caption='About Simple Chat Client'
 		).ShowModal()
-
-	def exit(self, evt: wx.CommandEvent):
-		self.Destroy()
 
 	def AppendRed(self, txt: str):
 		self.chat.SetDefaultStyle( wx.TextAttr( wx.Colour.Red() ) )
