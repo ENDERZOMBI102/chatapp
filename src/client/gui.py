@@ -7,27 +7,20 @@ from Client import Client
 
 class App(wx.App):
 
-	instance = None
-	client: Client
-
 	def OnInit(self) -> bool:
 		# create window
 		window = ClientWindow()
 		window.Show()
-		# create Client thread
-		self.client = Client()
-		self.client.SetListener( window.OnMessage )
-		App.instance = self
 		return True
 
 	def OnExit(self) -> int:
-		self.client.Stop()
 		return 0
 
 
 class ClientWindow(wx.Frame):
 
 	username = os.getlogin()
+	client: Client
 
 	def __init__(self):
 		super(ClientWindow, self).__init__(
@@ -82,11 +75,16 @@ class ClientWindow(wx.Frame):
 		)
 		sizer.Add(staticSizer)
 
+		# create Client thread
+		self.client = Client()
+		self.client.SetListener( self.OnMessage )
+
 		self.Bind( wx.EVT_CLOSE, self.OnClose, self )
 		self.Bind( wx.EVT_SIZING, self.OnResize, self )
 		self.Bind( wx.EVT_TEXT_ENTER, self.OnEnterPressed, self.input )
 
-	def OnClose(self, evt = None):
+	def OnClose(self, evt: wx.CommandEvent = None):
+		self.client.Stop()
 		self.Destroy()
 
 	def OnResize(self, evt: wx.Event):
@@ -96,7 +94,7 @@ class ClientWindow(wx.Frame):
 
 	def OnEnterPressed(self, evt: wx.CommandEvent ):
 		text = self.input.GetValue()
-		App.instance.client.Send( text )
+		self.client.Send( text )
 		self.chat.AppendText(f'[{self.username}] {text}\n')
 		self.input.Clear()
 
@@ -108,15 +106,15 @@ class ClientWindow(wx.Frame):
 			parent=self,
 			message='Insert server address (host:port)',
 			caption='Connect to server',
-			value=App.instance.client.GetAddress()
+			value=self.client.GetAddress()
 		)
 		if dialog.ShowModal() == wx.ID_OK:
 			host, port = dialog.GetValue().split(':')
 			if host == '' or port == '':
 				self.AppendRed(f'invalid address "{host}:{port}"!')
 			else:
-				App.instance.client.SetAddress(host, port)
-				App.instance.client.Send(f':CHGUNAME:{self.username}')
+				self.client.SetAddress(host, port)
+				self.client.Send(f':CHGUNAME:{self.username}')
 
 	def changeUsername(self, evt: wx.CommandEvent):
 		dialog = wx.TextEntryDialog(
@@ -131,7 +129,7 @@ class ClientWindow(wx.Frame):
 				self.AppendRed(f'invalid username "{username}"!')
 			else:
 				self.username = username
-				App.instance.client.Send(f':CHGUNAME:{self.username}')
+				self.client.Send(f':CHGUNAME:{self.username}')
 
 	def about(self, evt: wx.CommandEvent):
 		wx.GenericMessageDialog(
@@ -141,7 +139,7 @@ class ClientWindow(wx.Frame):
 		).ShowModal()
 
 	def AppendRed(self, txt: str):
-		self.chat.SetDefaultStyle( wx.TextAttr( wx.Colour.Red() ) )
+		self.chat.SetDefaultStyle( wx.TextAttr( wx.Colour().Red() ) )
 		self.chat.AppendText(txt)
 
 

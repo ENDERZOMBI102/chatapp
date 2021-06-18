@@ -50,8 +50,8 @@ class Client:
 	def Stop(self):
 		if self.Running:
 			self.Running = False
-			self.rcvThread.join()
 			self.socket.close()
+			self.rcvThread.join()
 
 	def Run(self):
 		self.Running = True
