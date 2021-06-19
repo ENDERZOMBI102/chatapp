@@ -1,35 +1,43 @@
+# noinspection PyUnresolvedReferences
 from browser import bind, document, websocket
-from browser.widgets.dialog import InfoDialog
-
-def on_open(evt):
-    document['sendbtn'].disabled = False
-
-def on_message(evt):
-    # message received from server
-    document['messages'] <= evt.data
-
-def on_close(evt):
-    # websocket is closed
-    document['sendbtn'].disabled = True
-
-ws: websocket = None
-
-def start(ev):
-    if not websocket.supported:
-        InfoDialog("websocket", "WebSocket is not supported by your browser")
-        return
-    global ws
-    # open a web socket
-    ws = websocket.WebSocket('https://20307-cada719f-7e1e-41c3-b740-01b962abb5a1.ws-eu01.gitpod.io')
-    # bind functions to web socket events
-    ws.bind('open', on_open)
-    ws.bind('message', on_message)
-    ws.bind('close', on_close)
+# noinspection PyUnresolvedReferences
+from browser.widgets.dialog import InfoDialog, EntryDialog
 
 
-def send(msg: str):
-    global ws
-    ws.send(msg)
+class Client:
+
+    ws: websocket = None
+
+    def __init__( self ):
+        if not websocket.supported:
+            InfoDialog( "websocket", "WebSocket is not supported by your browser" )
+            return
+
+    def connect( self, ip: str ):
+        # open a web socket
+        self.ws = websocket.WebSocket( f'ws://{ip}' )
+        # bind functions to web socket events
+        self.ws.bind( 'open', self.on_open )
+        self.ws.bind( 'message', self.on_message )
+        self.ws.bind( 'close', self.on_close )
+
+    def on_open(self, evt):
+        document['sendbtn'].disabled = False
+
+    def on_message(self, evt):
+        # message received from server
+        document['messages'] <= evt.data
+
+    def on_close(self, evt):
+        # websocket is closed
+        document[ 'messages' ] <= f'[SYSTEM] Disconnected from server: {evt.__dict__}'
+        document['sendbtn'].disabled = True
+
+    def send(self, msg: str):
+        self.ws.send(msg)
+
+
+client: Client = Client()
 
 
 @bind('#sendbtn', 'click')
@@ -37,6 +45,15 @@ def send(evt):
     msg: str = document['msg'].value
     document['msg'].value = ''
     document['messages'] <= msg
-    send(msg)
+    client.send(msg)
 
-start()
+
+@bind('#connbtn', 'click')
+def send(evt):
+    diag = EntryDialog( 'Input server ip', 'The ip is in ADDRESS:PORT form' )
+
+    @bind( diag, "entry" )
+    def entry( ev ):
+        ip = diag.value
+        diag.close()
+        client.connect( ip )

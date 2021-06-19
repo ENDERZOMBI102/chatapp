@@ -1,4 +1,6 @@
 from abc import ABCMeta, abstractmethod
+from datetime import datetime
+from typing import Coroutine
 
 
 class BaseClientHandler(metaclass=ABCMeta):
@@ -23,6 +25,18 @@ class BaseClientHandler(metaclass=ABCMeta):
 	@abstractmethod
 	async def CheckErrors( self ) -> None:
 		pass
+
+	async def ReplacePlaceholders( self, msg: str ) -> str:
+		return msg.replace( '{username}', self.username )\
+			.replace('{time}', datetime.now().strftime("%H:%M") )
+
+	async def HandleMessage( self, msg: str ):
+		print( f'[{self.addr}] {msg}' )
+		# handle commands
+		if msg.startswith( ':' ):
+			await self.HandleCommand( msg )
+		else:
+			await self.server.Broadcast( f'[{self.username}] {msg}', self )
 
 	async def HandleCommand( self, msg: str ):
 		cmd = msg.removeprefix( ':' ).split( ':' )

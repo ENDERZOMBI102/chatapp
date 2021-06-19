@@ -25,8 +25,7 @@ class ClientHandler(BaseClientHandler):
 		self._errorCheckTask = asyncio.create_task( self.CheckErrors() )
 
 	async def Send( self, message: str ) -> None:
-		message = message.replace( '{username}', self.username )\
-			.replace('{time}', datetime.now().strftime("%H:%M") )
+		message = await self.ReplacePlaceholders(message)
 		enc_message = message.encode( 'utf8' )
 		header = int.to_bytes( len( enc_message ), length=64, byteorder='little' )
 		self.writer.write( header )
@@ -48,12 +47,7 @@ class ClientHandler(BaseClientHandler):
 		while self.alive and not self.writer.is_closing():
 			size = int.from_bytes( await self.reader.read( 64 ), 'little' )
 			msg = ( await self.reader.read(size) ).decode( 'utf8' )
-			print(f'[{self.addr}] {msg}')
-			# handle commands
-			if msg.startswith(':'):
-				await self.HandleCommand(msg)
-				continue
-			await self.server.Broadcast( f'[{self.username}] {msg}', self )
+			await self.HandleMessage(msg)
 
 		print( f'closed connection to [{self.addr}]' )
 		self.alive = False
