@@ -3,15 +3,16 @@
 # chatapp
 A simple socket-based chat, with too many platforms.
 
-| Platform | Avaliable |
+| Platform | Status |
 | -------- | ------------ |
-| CLI (linux/windows/macos)| Yes |
-| GUI (linux/windows/macos)| Yes |
-| Nintendo 3DS | No |
+| CLI (linux/windows/macos)| Works |
+| GUI (linux/windows/macos)| Works |
+| Nintendo 3DS | N/A |
 | Web (all)| WIP |
 | Android | WIP |
-| IOS/IpadOS | No |
-| Portal 2: Community Edition | No |
-| Minecraft Java | No |
-| Minecraft Bedrock | No |
-| UEFI/BIOS | No |
+| IOS/IpadOS | N/A |
+| Portal 2 | Planning |
+| Portal 2: Community Edition | Planning |
+| Minecraft Java | N/A |
+| Minecraft Bedrock | N/A |
+| UEFI/BIOS | N/A |
