@@ -1,6 +1,5 @@
 import asyncio
 import traceback
-from datetime import datetime
 from asyncio import StreamWriter, StreamReader, Task
 
 from BaseClientHandler import BaseClientHandler

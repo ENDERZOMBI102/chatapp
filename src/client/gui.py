@@ -28,7 +28,7 @@ class ClientWindow(wx.Frame):
 			title='Simple Socket Chat GUI Client'
 		)
 		self.SetMinSize( wx.Size(500, 400) )
-		self.SetSize(wx.Size(500, 400))
+		self.SetSize( wx.Size(500, 400) )
 		# create menubar
 		menuBar = wx.MenuBar()
 
@@ -69,6 +69,7 @@ class ClientWindow(wx.Frame):
 			size=wx.Size( self.GetSize()[0], int( 0.30 * self.GetSize()[1] ) ),
 			style=wx.TE_WORDWRAP | wx.TE_NO_VSCROLL | wx.TE_PROCESS_ENTER
 		)
+		self.input.Enable(False)
 		staticSizer.Add(
 			self.input,
 			wx.SizerFlags(1).Expand()
@@ -88,9 +89,9 @@ class ClientWindow(wx.Frame):
 		self.Destroy()
 
 	def OnResize(self, evt: wx.Event):
-		self.chat.SetSize( wx.Size( self.GetSize()[0], 0.70 * self.GetSize()[1] ) )
-		self.input.SetSize( wx.Size( self.GetSize()[0], 0.30 * self.GetSize()[1] ) )
-		self.input.SetPosition( wx.Point( 0, self.chat.GetSize()[1]+1 ) )
+		self.chat.SetSize( wx.Size( self.GetSize()[0], int( 0.70 * self.GetSize()[1] ) ) )
+		self.input.SetSize( wx.Size( self.GetSize()[0], int( 0.30 * self.GetSize()[1] ) ) )
+		self.input.SetPosition( wx.Point( 0, self.chat.GetSize()[1] + 1 ) )
 
 	def OnEnterPressed(self, evt: wx.CommandEvent ):
 		text = self.input.GetValue()
@@ -113,8 +114,10 @@ class ClientWindow(wx.Frame):
 			if host == '' or port == '':
 				self.AppendRed(f'invalid address "{host}:{port}"!')
 			else:
+				self.chat.Clear()
 				self.client.SetAddress(host, port)
 				self.client.Send(f':CHGUNAME:{self.username}')
+				self.input.Enable()
 
 	def changeUsername(self, evt: wx.CommandEvent):
 		dialog = wx.TextEntryDialog(

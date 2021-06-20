@@ -12,12 +12,9 @@ class WSClientHandler(BaseClientHandler):
 	_inputTask: asyncio.Task
 
 	def __init__( self, server: 'AServer', ws: WebSocketServerProtocol, uri: str ):
-		super().__init__( server, ws.remote_address )
+		super().__init__( server, ':'.join( [ str(i) for i in ws.remote_address ] ) )
 		self.wsocket = ws
 		self.uri = uri
-
-		print( f'[{self.addr}] starting input loop' )
-		self._inputTask = asyncio.create_task( self.InputLoop() )
 
 	async def Send( self, message: str ) -> None:
 		await self.wsocket.send( await self.ReplacePlaceholders( message )  )

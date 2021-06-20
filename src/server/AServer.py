@@ -29,7 +29,10 @@ class AServer:
 		self.clients.append( ClientHandler( self, reader, writer ) )
 
 	async def _handleWSClient( self, ws: WebSocketServerProtocol, uri: str ):
-		self.clients.append( WSClientHandler( self, ws, uri ) )
+		handler = WSClientHandler( self, ws, uri )
+		self.clients.append( handler )
+		print( f'[{handler.addr}] starting input loop' )
+		await handler.InputLoop()
 
 	async def _run_server(self):
 		print( 'starting server' )
@@ -49,6 +52,7 @@ class AServer:
 				if client is not sender:
 					await client.Send(msg)
 			else:
+				print(f'Found closed client: {client.addr}')
 				self.clients.remove(client)
 
 	def Start( self ):

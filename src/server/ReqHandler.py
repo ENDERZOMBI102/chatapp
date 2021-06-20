@@ -37,13 +37,13 @@ class ReqHandler(ss.StreamRequestHandler):
 					except KeyError:
 						oldname = 'unregistered'
 					self.server.usernames[self.str_address] = cmd[1]
-					self.server.send(msg=f'{oldname} changed his name to {cmd[1]}', sender=self.str_address)
+					self.server.Send( msg=f'{oldname} changed his name to {cmd[1 ]}', sender=self.str_address )
 					self.send( msg=f'changed name to {cmd[1]}'.encode() )
 				elif cmd[0] == 'SSERVER':
 					raise KeyboardInterrupt
 				continue
 			print(f'[{self.client_address[0]}] received message: {msg}')
-			self.server.send(msg=f'[{self.server.usernames[self.str_address]}] {msg}', sender=self.str_address )
+			self.server.Send( msg=f'[{self.server.usernames[self.str_address ]}] {msg}', sender=self.str_address )
 
 	def send(self, msg: bytes):
 		if self.Running and self.request:

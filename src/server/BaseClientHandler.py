@@ -28,7 +28,8 @@ class BaseClientHandler(metaclass=ABCMeta):
 
 	async def ReplacePlaceholders( self, msg: str ) -> str:
 		return msg.replace( '{username}', self.username )\
-			.replace('{time}', datetime.now().strftime("%H:%M") )
+			.replace('{time}', datetime.now().strftime("%H:%M") )\
+			.replace('{servername}', self.server.name)
 
 	async def HandleMessage( self, msg: str ):
 		print( f'[{self.addr}] {msg}' )
