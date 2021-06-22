@@ -1,6 +1,10 @@
 import socket
 from typing import Tuple, Callable
 import threading
+import logging
+
+
+logger = logging.getLogger('CA-Client')
 
 
 class Client:
@@ -18,21 +22,21 @@ class Client:
 			self.ADDR, self.PORT = ADDR
 			self.socket = socket.create_connection( (self.ADDR, self.PORT) )
 
-	def SetAddress(self, host: int, port: int = 20307):
-		print(f'changing server to {host}:{port}!')
+	def SetAddress(self, host: str, port: int = 20307):
+		logger.info(f'changing server to {host}:{port}!')
 		self.ADDR = host
 		self.PORT = port
 		self.Running = False
 		if self.rcvThread:
-			print('stopping current connection...')
+			logger.info('stopping current connection...')
 			self.socket.close()
 			self.rcvThread.join()
 		self.socket = socket.create_connection( (self.ADDR, self.PORT) )
 		self.Run()
-		print('new connection created!')
+		logger.info('new connection created!')
 
 	def SetUsername(self, uname: str):
-		print(f'changing username to {uname}')
+		logger.info(f'changing username to {uname}')
 		self.Send(f':CHGUNAME:{uname}')
 
 	def GetAddress(self):
@@ -60,19 +64,21 @@ class Client:
 
 	def rcv(self):
 		while self.Running:
+			# noinspection PyBroadException
 			try:
 				raw_size = self.socket.recv(64)
 			except:
 				if self.ignoreErrors:
 					continue
 				elif self.Running:
+					self.Running = False
 					raise
 				else:
 					return
 			size = int.from_bytes(raw_size, 'little')
 			if size == 0:
 				continue
-			print(f'incoming message size: {size}')
+			logger.info(f'incoming message size: {size}')
 			self.OnMessage( self.socket.recv(size).decode() )
 
 	def __del__(self):
