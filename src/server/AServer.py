@@ -1,6 +1,7 @@
 import asyncio
 from sys import argv
 from asyncio import StreamReader, StreamWriter
+from typing import Union
 
 import websockets
 from websockets.legacy.server import Serve, WebSocketServerProtocol
@@ -10,11 +11,20 @@ from ClientHandler import ClientHandler
 from WSClientHandler import WSClientHandler
 
 
+class PlaceholderServer:
+
+	async def __aenter__(self):
+		pass
+
+	async def __aexit__(self, exc_type, exc_val, exc_tb):
+		pass
+
+
 class AServer:
 
 	clients: list[BaseClientHandler] = []
 	useWS: bool
-	wsServer: Serve = None
+	wsServer: Union[Serve, PlaceholderServer] = PlaceholderServer()
 	wsServerTask: asyncio.Task = None
 	port: int
 	name: str = 'DefaultServer'
