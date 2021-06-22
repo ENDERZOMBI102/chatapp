@@ -31,6 +31,7 @@
 					connbtn.textContent = 'Disconnect';
 					connbtn.title = 'Disconnect';
 					sendbtn.disabled = false;
+					console.log('[STATUS] connected')
 					client.ws.send(`:CHGUNAME:${client.username}`);
 				}
 
@@ -60,16 +61,18 @@
 						this.ws.send(`:CHGUNAME:${this.username}`);
 				}
 
-				Send(msg) {
-					this.ws.send(msg);
+				Send() {
+					this.ws.send(input.value);
+					writeMessage(`[${client.username}] ${input.value}`);
+					input.value = '';
 				}
 
 			}
+			const client = new Client();
 			var messages;
 			var input;
 			var sendbtn;
 			var connbtn;
-			const client = new Client();
 
 			function writeMessage(msg) {
 				messages.append(`${msg}`);
@@ -83,17 +86,15 @@
 				connbtn = document.getElementById('connbtn');
 
 				sendbtn.onclick = function () {
-					client.Send(input.value);
-					writeMessage(`[${client.username}] ${input.value}`);
-					input.value = '';
+					client.Send();
 				}
 
 				connbtn.onclick = function () {
-					if ( this.textContent == 'Connect' ) {
+					if ( this.textContent === 'Connect' ) {
 						// connect code
 						if ( client.username == null ) {
 							console.log('[STATUS] need username');
-							if ( input.value == '' ) {
+							if ( input.value === '' ) {
 								writeMessage('[SYSTEM] Please enter username and then click connect.');
 								return;
 							} else {
@@ -102,7 +103,7 @@
 								writeMessage(`[SYSTEM] Ok, username set to ${client.username}.`);
 							}
 						}
-						if ( input.value == '' ) {
+						if ( input.value === '' ) {
 							console.log('[STATUS] need ip');
 							writeMessage('[SYSTEM] Please enter the server ip and then click connect.');
 							return;
@@ -119,7 +120,7 @@
 				}
 
 				document.addEventListener('keypress', evt => {
-					if ( evt.code == 'KeyB' && evt.ctrlKey) {
+					if ( evt.code === 'KeyB' && evt.ctrlKey) {
 						console.log('toggle dark mode');
 						if ( document.body.className == 'dark' ) {
 							document.body.className = '';
@@ -129,7 +130,17 @@
 							document.body.className = 'dark';
 							input.className = 'dark';
 						}
+						evt.preventDefault();
 					}
+				});
+
+				input.addEventListener('keypress', evt => {
+					if(evt.code === 'Enter' ){
+						console.log('send message');
+						client.Send();
+            			evt.preventDefault();
+            		}
+
 				});
 
 			}
