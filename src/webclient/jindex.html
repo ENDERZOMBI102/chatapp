@@ -1,0 +1,147 @@
+<!doctype html>
+<!--suppress EqualityComparisonWithCoercionJS -->
+<html lang="en-us">
+	<head>
+		<title>ENDER's chat</title>
+		<style>
+			* { margin: 0; padding: 0; box-sizing: border-box; }
+			body { font: 13px Helvetica, Arial; }
+			.dark { background-color: grey; }
+			#inform { background: #0F0; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+			#inform input { border: 0; padding: 10px; width: 80%; margin-right: 0.5%; }
+			#inform button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; margin-left: 1px }
+			#messages { list-style-type: none; margin: 0; padding: 0; }
+			#messages li { padding: 5px 10px; }
+			#messages li:nth-child(odd) { background: #eee; }
+		</style>
+		<script>
+			class Client {
+				ws = null;
+				username = null;
+
+				Connect(ip) {
+					this.ws = new WebSocket(`ws://${ip}`);
+					this.ws.onopen = this.OnOpen;
+					this.ws.onmessage = this.OnMessage;
+					this.ws.onerror = this.OnError;
+					this.ws.onclose = this.OnClose;
+				}
+
+				OnOpen(evt) {
+					connbtn.textContent = 'Disconnect';
+					connbtn.title = 'Disconnect';
+					sendbtn.disabled = false;
+					client.ws.send(`:CHGUNAME:${client.username}`);
+				}
+
+				OnMessage(evt) {
+					writeMessage( evt.data );
+					 return false;
+				}
+
+				OnError(evt) {
+					console.log('[STATUS] error:');
+					console.log(evt);
+					writeMessage( `[SYSTEM] Error: ${evt}` );
+				}
+
+				OnClose(evt) {
+					console.log('[STATUS] disconnected');
+					console.log(evt);
+					writeMessage( `[SYSTEM] Disconnected from server, code: ${evt.code}` );
+					connbtn.textContent = 'Connect';
+					connbtn.title = 'Connect';
+					sendbtn.disabled = true;
+				}
+
+				ChangeUsername(newUsername) {
+					this.username = newUsername;
+					if ( this.ws !== null )
+						this.ws.send(`:CHGUNAME:${this.username}`);
+				}
+
+				Send(msg) {
+					this.ws.send(msg);
+				}
+
+			}
+			var messages;
+			var input;
+			var sendbtn;
+			var connbtn;
+			const client = new Client();
+
+			function writeMessage(msg) {
+				messages.append(`${msg}`);
+				messages.appendChild( document.createElement('br') );
+			}
+
+			function setup() {
+				messages = document.getElementById('messages');
+				input = document.getElementById('msg');
+				sendbtn = document.getElementById('sendbtn');
+				connbtn = document.getElementById('connbtn');
+
+				sendbtn.onclick = function () {
+					client.Send(input.value);
+					writeMessage(`[${client.username}] ${input.value}`);
+					input.value = '';
+				}
+
+				connbtn.onclick = function () {
+					if ( this.textContent == 'Connect' ) {
+						// connect code
+						if ( client.username == null ) {
+							console.log('[STATUS] need username');
+							if ( input.value == '' ) {
+								writeMessage('[SYSTEM] Please enter username and then click connect.');
+								return;
+							} else {
+								client.username = input.value;
+								input.value = '';
+								writeMessage(`[SYSTEM] Ok, username set to ${client.username}.`);
+							}
+						}
+						if ( input.value == '' ) {
+							console.log('[STATUS] need ip');
+							writeMessage('[SYSTEM] Please enter the server ip and then click connect.');
+							return;
+						}
+						console.log('[STATUS] connecting');
+						writeMessage(`[SYSTEM] Connecting to ${input.value}...`);
+						client.Connect(input.value);
+						input.value = '';
+					} else {
+						// disconnect code
+						console.log('[STATUS] disconnecting');
+						client.ws.close();
+					}
+				}
+
+				document.addEventListener('keypress', evt => {
+					if ( evt.code == 'KeyB' && evt.ctrlKey) {
+						console.log('toggle dark mode');
+						if ( document.body.className == 'dark' ) {
+							document.body.className = '';
+							input.className = '';
+						}
+						else {
+							document.body.className = 'dark';
+							input.className = 'dark';
+						}
+					}
+				});
+
+			}
+		 </script>
+	</head>
+	<body onload="setup()">
+		<ul id="messages"></ul>
+		<div id="inform">
+			<!--suppress HtmlFormInputWithoutLabel -->
+			<input id="msg" autocomplete="off" />
+			<button id="sendbtn" disabled>Send</button>
+			<button id="connbtn">Connect</button>
+		</div>
+	</body>
+</html>
