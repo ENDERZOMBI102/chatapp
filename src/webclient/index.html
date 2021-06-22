@@ -12,17 +12,17 @@
 			#messages li { padding: 5px 10px; }
 			#messages li:nth-child(odd) { background: #eee; }
 		</style>
-		<script src="https://cdn.jsdelivr.net/npm/brython@3.8.10/brython.min.js"></script>
-		<script src="https://cdn.jsdelivr.net/npm/brython@3.8.10/brython_stdlib.js">
-			new EventSource().addEventListener()
-		</script>
+		<script src="https://cdn.jsdelivr.net/npm/brython@3.9.4/brython.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/brython@3.9.4/brython_stdlib.js"></script>
 	</head>
 	<body onload="brython(1)">
-		<script type="text/python" src="./client.py"></script>
+		<script type="text/python" src="./client.py">
+			print('hello')
+		</script>
 		<ul id="messages"></ul>
 		<div id="inform">
 			<input id="msg" autocomplete="off" />
-			<button id="sendbtn">Send</button>
+			<button id="sendbtn" disabled>Send</button>
 			<button id="connbtn">Connect</button>
 		</div>
 	</body>
