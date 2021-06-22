@@ -1,7 +1,7 @@
 from browser import bind, document, websocket
 from browser.widgets.dialog import InfoDialog, EntryDialog
 
-from webtypes import MessageEvent
+from webtypes import MessageEvent, MouseEvent
 
 
 # noinspection PyStatementEffect
@@ -12,7 +12,7 @@ class Client:
 
 	def __init__( self ):
 		if not websocket.supported:
-			InfoDialog( "websocket", "WebSocket is not supported by your browser" )
+			InfoDialog(' "websocket"', 'WebSocket is not supported by your browser' )
 			return
 
 	def connect( self, ip: str ):
@@ -45,8 +45,9 @@ class Client:
 client: Client = Client()
 
 
+# noinspection PyStatementEffect
 @bind('#sendbtn', 'click')
-def send(evt):
+def send(evt: MouseEvent):
 	msg: str = document['msg'].value
 	document['msg'].value = ''
 	document['messages'] <= msg
@@ -54,11 +55,11 @@ def send(evt):
 
 
 @bind('#connbtn', 'click')
-def connect(evt):
+def connect(evt: MouseEvent) -> None:
 	diag = EntryDialog( 'Input server ip', 'The ip is in ADDRESS:PORT form' )
 
-	@bind( diag, "entry" )
-	def entry(evt):
+	@bind( diag, 'entry' )
+	def entry(evt) -> None:
 		ip = diag.value
 		diag.close()
 		client.connect( ip )
