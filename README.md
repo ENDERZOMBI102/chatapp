@@ -8,7 +8,7 @@ A simple socket-based chat, with too many platforms.
 | CLI (linux/windows/macos)| Works |
 | GUI (linux/windows/macos)| Works |
 | Nintendo 3DS | N/A |
-| Web (all)| WIP |
+| Web (all)| Works |
 | Android | WIP |
 | IOS/IpadOS | N/A |
 | Portal 2 | Planning |
