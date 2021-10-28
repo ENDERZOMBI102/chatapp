@@ -1,14 +1,14 @@
 import asyncio
-from sys import argv
 from asyncio import StreamReader, StreamWriter
-from typing import Union
+from typing import Union, Optional
 
 import websockets
 from websockets.legacy.server import Serve, WebSocketServerProtocol
 
-from BaseClientHandler import BaseClientHandler
-from ClientHandler import ClientHandler
-from WSClientHandler import WSClientHandler
+from .BaseClientHandler import BaseClientHandler
+from .ClientHandler import ClientHandler
+from .WSClientHandler import WSClientHandler
+from data import Message
 
 
 class PlaceholderServer:
@@ -25,7 +25,7 @@ class AServer:
 	clients: list[BaseClientHandler] = []
 	useWS: bool
 	wsServer: Union[Serve, PlaceholderServer] = PlaceholderServer()
-	wsServerTask: asyncio.Task = None
+	wsServerTask: Optional[asyncio.Task] = None
 	port: int
 	name: str = 'DefaultServer'
 	motd: str = 'Welcome {username} to {servername}!'
@@ -56,7 +56,7 @@ class AServer:
 				print( f'websockets listening on 0.0.0.0:{self.port + 1}' )
 			await self.server.serve_forever()
 
-	async def Broadcast( self, msg: str, sender: ClientHandler ):
+	async def Broadcast( self, msg: Message, sender: ClientHandler ):
 		for client in self.clients:
 			if client.alive:
 				if client is not sender:
@@ -67,6 +67,3 @@ class AServer:
 
 	def Start( self ):
 		asyncio.run( self._run_server() )
-
-
-AServer( websocket='--websocket' in argv ).Start()

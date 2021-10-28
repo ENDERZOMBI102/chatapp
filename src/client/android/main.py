@@ -1,13 +1,14 @@
 import os
 
-import kivy
-from kivy.app import App
-from kivy.core.window import WindowBase
-from kivy.uix.textinput import TextInput
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.widget import Widget
+import kivy  # type: ignore[import]
+from kivy.app import App  # type: ignore[import]
+from kivy.core.window import WindowBase  # type: ignore[import]
+from kivy.uix.textinput import TextInput  # type: ignore[import]
+from kivy.uix.boxlayout import BoxLayout  # type: ignore[import]
+from kivy.uix.widget import Widget  # type: ignore[import]
 
-from Client import Client
+from client.Client import Client
+from data import Message
 
 kivy.require('2.0.0')  # replace with your current kivy version !
 
@@ -58,8 +59,8 @@ class ChatApp(App):
         instance.text = ''
         self.client.Send(message)
 
-    def OnMessage( self, msg: str ):
-        self.chat.text += f'{msg}\n'
+    def OnMessage( self, msg: Message ):
+        self.chat.text += f'{msg.content}\n'
 
     # --- APP EVENTS ---
     def on_stop(self):
@@ -70,9 +71,6 @@ class ChatApp(App):
 
     def on_resume(self):
         """ app resumes exec """
-
-
-
 
 
 if __name__ == '__main__':

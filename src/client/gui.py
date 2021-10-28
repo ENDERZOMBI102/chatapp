@@ -1,8 +1,9 @@
 import os
 
-import wx
+import wx  # type: ignore[import]
 
-from Client import Client
+from .Client import Client
+from data import Message
 
 
 class App(wx.App):
@@ -28,7 +29,6 @@ def getWxID() -> int:
 
 
 class ClientWindow(wx.Frame):
-
 	username = os.getlogin()
 	client: Client
 	menus: dict[str, wx.MenuItem]
@@ -116,16 +116,16 @@ class ClientWindow(wx.Frame):
 		self.chat.AppendText(f'[{self.username}] {text}\n')
 		self.input.Clear()
 
-	def OnMessage( self, msg: str ) -> None:
+	def OnMessage( self, msg: Message ) -> None:
 		# add color/styles/tags
 		# system messages should be blue
-		if msg.startswith(':SYSTEM:'):
-			self.AppendStyled( msg, self.colors.FindColour('blue') )
+		if msg.content.startswith(':SYSTEM:') and msg.author == 'system':
+			self.AppendStyled( msg.content, self.colors.FindColour('blue') )
 		else:
-			self.chat.AppendText( msg + '\n' )
+			self.chat.AppendText( repr( msg ) + '\n' )
 
-	def OnMessageRaw(self, msg: str) -> None:
-		wx.CallAfter( self.OnMessage, msg)
+	def OnMessageRaw(self, msg: Message) -> None:
+		wx.CallAfter( self.OnMessage, msg.content)
 
 	def Reset( self ) -> None:
 		self.chat.Clear()
@@ -153,7 +153,7 @@ class ClientWindow(wx.Frame):
 			else:
 				self.Reset()
 				self.client.SetAddress(host, port)
-				self.client.Send(f':CHGUNAME:{self.username}')
+				self.client.Send( Message( self.username, f':CHGUNAME:{self.username}' ) )
 				self.input.Enable()
 				self.menus['disconnect'].Enable()
 
@@ -173,10 +173,10 @@ class ClientWindow(wx.Frame):
 		if dialog.ShowModal() == wx.ID_OK:
 			username = dialog.GetValue()
 			if username == '':
-				self.AppendStyled( f'invalid username "{username}"!' )
+				self.AppendStyled( f'invalid username "{username}"!', self.colors.FindColour('red') )
 			else:
 				self.username = username
-				self.client.Send(f':CHGUNAME:{self.username}')
+				self.client.Send( Message( 'system', f':CHGUNAME:{self.username}' ) )
 
 	def about(self, evt: wx.CommandEvent) -> None:
 		wx.GenericMessageDialog(

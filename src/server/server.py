@@ -3,7 +3,7 @@ import threading
 from socket import socket
 from typing import Dict
 
-from ReqHandler import ReqHandler
+from .ReqHandler import ReqHandler
 
 
 class Server(ss.ThreadingTCPServer, ss.TCPServer):

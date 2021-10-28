@@ -35,7 +35,7 @@
 					client.ws.send(`:CHGUNAME:${client.username}`);
 				}
 
-				OnMessage(evt) {
+				OnMessageRaw(evt) {
 					writeMessage( evt.data );
 					 return false;
 				}

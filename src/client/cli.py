@@ -2,7 +2,8 @@ import time
 import optparse
 import os
 
-import Client
+from data import Message
+from . import Client
 
 parser = optparse.OptionParser()
 
@@ -23,44 +24,54 @@ parser.add_option(
 	help='use this server instead of the default one, format: host:port',
 	default='127.0.0.1:20307'
 )
-(options, args) = parser.parse_args()
-options.username: str
-options.address: str
 
 
-# create client object
-client: Client.Client = Client.Client()
-# set listener function
-client.SetListener( lambda msg: print(msg) )
+class Options:
+	username: str
+	address: str
 
-# set the server address
-host, port = options.address.split(':')
-client.SetAddress(host, port)
 
-# start the client
-client.Run()
-client.SetUsername( options.username )
+def main() -> None:
+	options: Options = parser.parse_args()[0]  # type: ignore[assignment]
 
-# event loop
-while True:
-	time.sleep(0.01)
-	txt = input()
+	# create client object
+	client: Client.Client = Client.Client()
+	# set listener function
+	client.SetListener( lambda msg: print( msg.content ) )
+	
+	# set the server address
+	host, port = options.address.split(':')
+	client.SetAddress(host, port)
+	
+	# start the client
+	client.Run()
+	client.SetUsername( options.username )
+	
+	# event loop
+	while True:
+		time.sleep(0.01)
+		txt = input()
+	
+		# commands
+		if txt.startswith(':'):
+			# change user name
+			if txt.startswith(':name '):
+				newName = txt.split(' ')[1]
+				client.SetUsername(newName)
+				options.username = newName
+			# change server
+			elif txt.startswith(':server '):
+				host, port = txt.replace(':server ', '').split(':')
+				client.SetAddress(host, port)
+			# quit
+			elif txt.startswith(':quit '):
+				break
+			continue
+		client.Send( Message( options.username, txt, time.time() ) )
+	
+	# destruct client
+	del client
 
-	# commands
-	if txt.startswith(':'):
-		# change user name
-		if txt.startswith(':name '):
-			newname = txt.split(' ')[1]
-			client.SetUsername(newname)
-		# change server
-		elif txt.startswith(':server '):
-			host, port = txt.replace(':server ', '').split(':')
-			client.SetAddress(host, port)
-		# quit
-		elif txt.startswith(':quit '):
-			break
-		continue
-	client.Send(txt)
 
-# destruct client
-del client
+if __name__ == '__main__':
+	main()
