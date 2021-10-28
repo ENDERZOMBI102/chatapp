@@ -35,6 +35,14 @@ class Client:
 		self.Run()
 		logger.info('new connection created!')
 
+	# noinspection PyMethodMayBeStatic
+	def CheckIsValid( self, host: str, port: int ) -> bool:
+		try:
+			socket.getaddrinfo( host, port, 0, socket.SOCK_STREAM )
+			return True
+		except socket.gaierror:
+			return False
+
 	def SetUsername(self, uname: str):
 		logger.info(f'changing username to {uname}')
 		self.Send(f':CHGUNAME:{uname}')
@@ -56,6 +64,7 @@ class Client:
 			self.Running = False
 			self.socket.close()
 			self.rcvThread.join()
+			self.rcvThread = None
 
 	def Run(self):
 		self.Running = True
