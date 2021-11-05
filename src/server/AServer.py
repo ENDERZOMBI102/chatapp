@@ -41,7 +41,7 @@ class AServer:
 	async def _handleWSClient( self, ws: WebSocketServerProtocol, uri: str ):
 		handler = WSClientHandler( self, ws, uri )
 		self.clients.append( handler )
-		print( f'[{handler.addr}] starting input loop' )
+		print( f'[{handler.addr}] starting input loop {uri}' )
 		await handler.InputLoop()
 
 	async def _run_server(self):

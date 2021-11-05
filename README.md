@@ -5,7 +5,7 @@ A simple socket-based chat, with too many platforms.
 
 | Platform | Status |
 | -------- | ------------ |
-| CLI (linux/windows/macos)| Works |
+| CLI (linux/windows/macos)| WIP |
 | GUI (linux/windows/macos)| Works |
 | Nintendo 3DS | N/A |
 | Web (all)| Works |
@@ -16,3 +16,4 @@ A simple socket-based chat, with too many platforms.
 | Minecraft Java | N/A |
 | Minecraft Bedrock | N/A |
 | UEFI/BIOS | N/A |
+| GRUB | N/A |

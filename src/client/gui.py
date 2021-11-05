@@ -1,4 +1,5 @@
 import os
+from time import time
 
 import wx  # type: ignore[import]
 
@@ -112,7 +113,7 @@ class ClientWindow(wx.Frame):
 
 	def OnEnterPressed(self, evt: wx.CommandEvent ) -> None:
 		text = self.input.GetValue()
-		self.client.Send( text )
+		self.client.Send( Message( self.username, text, time() ) )
 		self.chat.AppendText(f'[{self.username}] {text}\n')
 		self.input.Clear()
 

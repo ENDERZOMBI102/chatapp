@@ -13,8 +13,35 @@
 			#messages { list-style-type: none; margin: 0; padding: 0; }
 			#messages li { padding: 5px 10px; }
 			#messages li:nth-child(odd) { background: #eee; }
+			.dark #messages li:nth-child(odd) {
+				background: darkgray;
+			}
 		</style>
 		<script>
+			class Message {
+				author = '';
+				content = '';
+				sentAt = 0.0;
+				constructor(author, content, sentAt = null) {
+					this.author = author;
+					this.content = content;
+					this.sentAt = sentAt;
+				}
+
+				toJson() {
+					return JSON.stringify(this);
+				}
+
+				fromJson(json) {
+					json = JSON.parse(json);
+					this.author = json['author'];
+					this.content = json['content'];
+					this.time = json['time'];
+					return this;
+				}
+			}
+
+
 			class Client {
 				ws = null;
 				username = null;
@@ -22,7 +49,7 @@
 				Connect(ip) {
 					this.ws = new WebSocket(`ws://${ip}`);
 					this.ws.onopen = this.OnOpen;
-					this.ws.onmessage = this.OnMessage;
+					this.ws.onmessage = this.OnMessageRaw;
 					this.ws.onerror = this.OnError;
 					this.ws.onclose = this.OnClose;
 				}
@@ -31,26 +58,27 @@
 					connbtn.textContent = 'Disconnect';
 					connbtn.title = 'Disconnect';
 					sendbtn.disabled = false;
-					console.log('[STATUS] connected')
-					client.ws.send(`:CHGUNAME:${client.username}`);
+					console.log('[STATUS] connected');
+					client.Send( new Message( 'system', `:CHGUNAME:${client.username}` ) );
 				}
 
 				OnMessageRaw(evt) {
-					writeMessage( evt.data );
-					 return false;
+					window.x = evt
+					writeMessage( new Message().fromJson( evt.data ).content );
+					return false;
 				}
 
 				OnError(evt) {
 					console.log('[STATUS] error:');
 					console.log(evt);
-					writeMessage( `[SYSTEM] Error: ${evt}` );
+					writeMessage( `<clr:blue>[SYSTEM] Error: ${evt}` );
 				}
 
 				OnClose(evt) {
 					console.log('[STATUS] disconnected');
 					console.log(evt);
 					writeMessage(
-						`[SYSTEM] Disconnected from server, code: ${evt.code}, reason: ${getStatusCodeString(evt.code)}`
+						`<clr:blue>[SYSTEM] Disconnected from server, code: ${evt.code}, reason: ${getStatusCodeString(evt.code)}`
 					);
 					connbtn.textContent = 'Connect';
 					connbtn.title = 'Connect';
@@ -63,8 +91,14 @@
 						this.ws.send(`:CHGUNAME:${this.username}`);
 				}
 
-				Send() {
-					this.ws.send(input.value);
+				Send(msg) {
+					if ( msg instanceof Message ) {
+						this.ws.send( msg.toJson() )
+					}
+				}
+
+				SendInput() {
+					this.Send( new Message( client.username, input.value, Date.now() ) );
 					writeMessage(`[${client.username}] ${input.value}`);
 					input.value = '';
 				}
@@ -116,47 +150,86 @@
 			}
 
 			function writeMessage(msg) {
-				messages.append(`${msg}`);
-				messages.appendChild( document.createElement('br') );
+				const childMaster = document.createElement('li');
+				let lastIndex = 0;
+				while ( msg.includes('<clr:') ) {
+					// if there was text before the first tag, add it
+					if ( lastIndex === 0 && msg.indexOf('<clr:') !== 0 ) {
+						let child = document.createElement('div');
+						child.innerHTML = `<div style=" display: inline ">${msg.substring( 0, msg.indexOf('<clr:') )}</div>`;
+						childMaster.appendChild(child);
+					}
+					// get color
+					let clrTagEnd = msg.indexOf( '>', lastIndex );
+					lastIndex = clrTagEnd + 1;
+					let clr = msg.substring(msg.indexOf('<clr:') + 5, clrTagEnd);
+					// get next clr tag (if exists)
+					let nextClrTagStart = msg.indexOf( '<clr:', lastIndex );
+					nextClrTagStart = nextClrTagStart == -1 ? msg.length : nextClrTagStart;
+					// create child
+					let child = document.createElement('div');
+					child.innerHTML = `<div style=" color: ${clr}; display: inline ">${msg.substring(clrTagEnd + 1, nextClrTagStart)}</div>`;
+					childMaster.appendChild(child);
+					msg = msg.substring( nextClrTagStart );
+				}
+				if ( msg.length > 0 ) {
+					let child = document.createElement('div');
+					child.innerHTML = `<div style=" display: inline ">${msg}</div>`;
+					childMaster.appendChild(child);
+				}
+				messages.appendChild( childMaster );
 			}
 
 			function setup() {
 				messages = document.getElementById('messages');
-				input = document.getElementById('msg');
+				input = document.getElementById('inputMsg');
 				sendbtn = document.getElementById('sendbtn');
 				connbtn = document.getElementById('connbtn');
 
 				sendbtn.onclick = function () {
-					client.Send();
+					client.SendInput();
 				}
 
 				connbtn.onclick = function () {
-					if ( this.textContent === 'Connect' ) {
-						// connect code
-						if ( client.username == null ) {
+					/* connbtn phases
+					* - Confirm: requires username
+					* - Connect: requires ip/port
+					* - Disconnect: requires confirmation
+					*/
+					switch ( this.textContent ) {
+						case "Confirm":
 							console.log('[STATUS] need username');
 							if ( input.value === '' ) {
-								writeMessage('[SYSTEM] Please enter username and then click connect.');
+								writeMessage('<clr:blue>[SYSTEM] Please enter username and then click Confirm.');
 								return;
 							} else {
 								client.username = input.value;
 								input.value = '';
-								writeMessage(`[SYSTEM] Ok, username set to ${client.username}.`);
+								writeMessage(`<clr:blue>[SYSTEM] Ok, username set to ${client.username}.`);
+								writeMessage('<clr:blue>[SYSTEM] Please enter server ip:port.');
+								this.textContent = 'Connect';
 							}
-						}
-						if ( input.value === '' ) {
-							console.log('[STATUS] need ip');
-							writeMessage('[SYSTEM] Please enter the server ip and then click connect.');
-							return;
-						}
-						console.log('[STATUS] connecting');
-						writeMessage(`[SYSTEM] Connecting to ${input.value}...`);
-						client.Connect(input.value);
-						input.value = '';
-					} else {
-						// disconnect code
-						console.log('[STATUS] disconnecting');
-						client.ws.close();
+							break;
+						case "Connect":
+							console.log('[STATUS] need ip/port');
+							if ( input.value === '' ) {
+								writeMessage('<clr:blue>[SYSTEM] Please enter the server ip and then click connect.');
+								return;
+							} else {
+								console.log('[STATUS] connecting');
+								writeMessage(`<clr:blue>[SYSTEM] Connecting to ${input.value}...`);
+								client.Connect(input.value);
+								input.value = '';
+							}
+							break;
+						case "Disconnect":
+							// console.log('[STATUS] need confirmation');
+							console.log('[STATUS] disconnecting');
+							client.ws.close();
+							break;
+						default:
+							console.log('[STATUS] need questioning on how tf this was called');
+							console.error("wtf just happened");
 					}
 				}
 
@@ -176,24 +249,29 @@
 				});
 
 				input.addEventListener('keypress', evt => {
-					if(evt.code === 'Enter' ){
-						console.log('send message');
-						client.Send();
-            			evt.preventDefault();
+					if( evt.code === 'Enter' ) {
+						if ( connbtn.textContent !== 'Disconnect' ) {
+							console.log('[ACTION] send message');
+							connbtn.onclick()
+							evt.preventDefault();
+						} else {
+							console.log('[ACTION] send message');
+							sendbtn.onclick();
+							evt.preventDefault();
+						}
             		}
-
 				});
-
+				writeMessage('<clr:blue>[SYSTEM] Please enter username and then click Confirm.');
 			}
 		 </script>
 	</head>
 	<body onload="setup()">
-		<ul id="messages"></ul>
+		<ul id="messages"> </ul>
 		<div id="inform">
 			<!--suppress HtmlFormInputWithoutLabel -->
-			<input id="msg" autocomplete="off" />
+			<input id="inputMsg" autocomplete="off" />
 			<button id="sendbtn" disabled>Send</button>
-			<button id="connbtn">Connect</button>
+			<button id="connbtn">Confirm</button>
 		</div>
 	</body>
 </html>
