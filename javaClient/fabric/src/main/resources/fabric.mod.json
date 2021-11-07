@@ -1,0 +1,30 @@
+{
+	"schemaVersion": 1,
+	"id": "chatapp",
+	"version": "${version}",
+	"name": "ChatApp",
+	"description": "A chatapp client for fabric",
+	"authors": [
+		"ENDERZOMBI102"
+	],
+	"contact": {},
+	"license": "MIT",
+	"icon": "assets/chatapp/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": [
+			"com.enderzombi102.chatapp.client.ChatAppClient"
+		],
+		"main": [
+			"com.enderzombi102.chatapp.ChatApp"
+		]
+	},
+	"mixins": [
+		"chatapp.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.11.0",
+		"fabric": "*",
+		"minecraft": "1.17.1"
+	}
+}
