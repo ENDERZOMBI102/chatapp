@@ -1,18 +1,19 @@
 from pprint import pprint
+from typing import Union, Any
 
 document = []
 
-document
 
 def writeMessage(msg: str) -> None:
-	childMaster: list[ list[str] ] = []
+	childMaster = []
 	lastIndex: int = 0
 
 	while '<clr:' in msg:
 		# if there was text before the first tag, add it
 		if lastIndex == 0 and msg.find('<clr:') != 0:
-			child = []
-			child.append(f'<div style=" display: inline ">{msg[ 0 : msg.find("<clr:") ]}</div>')
+			child = [
+				f'<div style=" display: inline ">{msg[ 0 : msg.find("<clr:") ]}</div>'
+			]
 			childMaster.append( child )
 		# get color
 		clrTagEnd = msg.find('>', lastIndex)
@@ -22,14 +23,16 @@ def writeMessage(msg: str) -> None:
 		nextClrTagStart = msg.find( '<clr:', lastIndex )
 		nextClrTagStart = len(msg) if nextClrTagStart == -1 else nextClrTagStart
 		# create child
-		child = []
-		child.append( f'<div style=" color: {clr}; display: inline ">{msg[ clrTagEnd + 1 : nextClrTagStart ]}</div>' )
+		child = [
+			f'<div style=" color: {clr}; display: inline ">{msg[ clrTagEnd + 1 : nextClrTagStart ]}</div>'
+		]
 		childMaster.append( child )
 		msg = msg[ nextClrTagStart : ]
 
 	if len(msg) > 0:
-		child = []
-		child.append( f'<div style=" display: inline ">{msg}</div>' )
+		child: NODE_TYPE = [
+			f'<div style=" display: inline ">{msg}</div>'
+		]
 		childMaster.append( child )
 
 	pprint( childMaster )
