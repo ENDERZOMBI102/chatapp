@@ -120,6 +120,7 @@ class ClientWindow(wx.Frame):
 	def OnMessage( self, msg: Message ) -> None:
 		# add color/styles/tags
 		# system messages should be blue
+		# TODO: Add color support
 		if msg.content.startswith(':SYSTEM:') and msg.author == 'system':
 			self.AppendStyled( msg.content, self.colors.FindColour('blue') )
 		else:
