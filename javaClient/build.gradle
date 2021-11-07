@@ -1,5 +1,10 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.0'
     id 'java'
+}
+
+configurations {
+    shade
 }
 
 group 'com.enderzombi102'
@@ -10,4 +15,14 @@ repositories {
 }
 
 dependencies {
+    implementation 'org.jetbrains:annotations:20.1.0'
+    shade implementation( 'blue.endless:jankson:1.2.1' )
+    shade implementation( 'org.apache.logging.log4j:log4j-core:2.14.1' )
+    shade implementation( 'org.apache.logging.log4j:log4j-api:2.14.1' )
+}
+
+shadowJar {
+    configurations = [
+            project.configurations.shade
+    ]
 }
