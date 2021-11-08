@@ -18,9 +18,6 @@ class ClientHandler(BaseClientHandler):
 		super().__init__( server, ':'.join( [ str(i) for i in writer.get_extra_info('peername') ] ) )
 		self.reader = reader
 		self.writer = writer
-		print( f'[{self.addr}] getting client info' )
-		# size = int.from_bytes( await self.reader.read( 64 ), 'little' )
-		# msg = ( await self.reader.read( size ) ).decode( 'utf8' )
 		print( f'[{self.addr}] starting input loop' )
 		self._inputTask = asyncio.create_task( self.InputLoop() )
 		self._errorCheckTask = asyncio.create_task( self.CheckErrors() )
@@ -64,4 +61,4 @@ class ClientHandler(BaseClientHandler):
 		self._alive = False
 		
 	def isAlive( self ) -> bool:
-		return self._alive and not self.writer.is_closing()
+		return self._alive and not ( self.reader.at_eof() or self.writer.is_closing() )

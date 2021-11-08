@@ -37,14 +37,11 @@ def main() -> None:
 	# create client object
 	client: Client.Client = Client.Client()
 	# set listener function
-	client.SetListener( lambda msg: print( msg.content ) )
+	client.SetMessageListener( lambda msg: print( msg.content ) )
 	
-	# set the server address
+	# setup client
 	host, port = options.address.split(':')
 	client.SetAddress(host, port)
-	
-	# start the client
-	client.Run()
 	client.SetUsername( options.username )
 	
 	# event loop

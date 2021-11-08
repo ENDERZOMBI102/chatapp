@@ -1,17 +1,6 @@
 import json
 from dataclasses import dataclass
-from enum import Enum, auto
-from typing import Optional
-
-
-class OS(Enum):
-	UNKNOWN = auto()
-	WINDOWS = auto()
-	MACOS = auto()
-	LINUX = auto()
-	ANDROID = auto()
-	FREEBDS = auto()
-	WEB = auto()
+from typing import Optional, Protocol
 
 
 @dataclass
@@ -29,3 +18,11 @@ class Message:
 
 	def __repr__(self) -> str:
 		return f'[{self.author}] {self.content}'
+
+
+class MessageListener(Protocol):
+	def __call__( self, msg: Message ) -> None: ...
+
+
+class CloseListener(Protocol):
+	def __call__( self ) -> None: ...

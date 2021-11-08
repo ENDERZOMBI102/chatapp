@@ -1,65 +1,35 @@
-from browser import bind, document, websocket
-from browser.widgets.dialog import InfoDialog, EntryDialog
+from browser.websocket import WebSocket
 
-from webtypes import MessageEvent, MouseEvent
+from .. import data
 
 
-# noinspection PyStatementEffect
-class Client:
+connbtn = ...
 
-	ws: websocket = None
-	username: str = 'WebClient'
 
-	def __init__( self ):
-		if not websocket.supported:
-			InfoDialog(' "websocket"', 'WebSocket is not supported by your browser' )
-			return
-
-	def connect( self, ip: str ):
-		# open a web socket
-		self.ws = websocket.WebSocket( f'ws://{ip}' )
-		# bind functions to web socket events
+class WebClient:
+	ws: WebSocket
+	username: str
+	
+	def Connect( self, ip: str ) -> None:
+		self.ws = WebSocket(f'ws://{ip}')
 		self.ws.bind( 'open', self.OnOpen )
-		self.ws.bind( 'message', self.OnMessage )
+		self.ws.bind( 'message', self.OnMessageRaw )
+		self.ws.bind( 'error', self.OnError )
 		self.ws.bind( 'close', self.OnClose )
-
-	def OnOpen( self, evt ):
-		document['sendbtn'].disabled = False
-		self.Send( f':CHGUNAME:{self.username}' )
-
-	@staticmethod
-	def OnMessage( evt: MessageEvent ):
-		# message received from server
-		document['messages'] <= evt.data
-
-	@staticmethod
-	def OnClose( evt ):
-		# websocket is closed
-		document[ 'messages' ] <= f'[SYSTEM] Disconnected from server, code: {evt.code}'
-		document['sendbtn'].disabled = True
-
-	def Send( self, msg: str ):
-		self.ws.send( msg )
-
-
-client: Client = Client()
-
-
-# noinspection PyStatementEffect
-@bind('#sendbtn', 'click')
-def send(evt: MouseEvent):
-	msg: str = document['msg'].value
-	document['msg'].value = ''
-	document['messages'] <= msg
-	client.Send( msg )
-
-
-@bind('#connbtn', 'click')
-def connect(evt: MouseEvent) -> None:
-	diag = EntryDialog( 'Input server ip', 'The ip is in ADDRESS:PORT form' )
-
-	@bind( diag, 'entry' )
-	def entry(evt) -> None:
-		ip = diag.value
-		diag.close()
-		client.connect( ip )
+	
+	def OnOpen( self, evt ) -> None:
+		connbtn.textContent = 'Disconnect'
+	
+	def OnMessageRaw( self, evt ) -> None:
+		pass
+	
+	def OnError( self, evt ) -> None:
+		pass
+	
+	def OnClose( self, evt ) -> None:
+		pass
+	
+	
+	
+	
+	

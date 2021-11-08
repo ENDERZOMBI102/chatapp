@@ -48,18 +48,18 @@ class ChatApp(App):
         layout.add_widget( self.chat )
         layout.add_widget( self.input )
 
-        self.client.SetListener( self.OnMessage )
+        self.client.SetMessageListener( self.OnMessage )
 
         return layout
 
     # --- CLIENT EVENTS ---
-    def OnEnterPressed( self, instance: TextInput):
+    def OnEnterPressed( self, instance: TextInput) -> None:
         message = instance.text.strip()
         self.chat.text += f'[{self.username}] {message}\n'
         instance.text = ''
         self.client.Send(message)
 
-    def OnMessage( self, msg: Message ):
+    def OnMessage( self, msg: Message ) -> None:
         self.chat.text += f'{msg.content}\n'
 
     # --- APP EVENTS ---

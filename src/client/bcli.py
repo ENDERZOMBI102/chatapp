@@ -19,8 +19,7 @@ class App:
 		with self.term.fullscreen(), self.term.cbreak(), self.term.hidden_cursor(), self.term.location():
 			while self.shouldContinue:
 				self.term.move_xy( 0, self.term.height )
-				print(f'current server: {self.client.ADDR}:{self.client.PORT}')
-				#self.term.
+				print(f'current server: {self.client.GetAddress()}')
 
 
 if __name__ == '__main__':

@@ -1,14 +1,10 @@
 import socket
-from typing import Callable, Optional, Union, Any
+from typing import Optional, Union
 import threading
 import logging
-from data import Message
+from data import Message, MessageListener, CloseListener
 
 logger = logging.getLogger('CA-Client')
-
-
-MessageListener = Callable[ [Message], None ]
-CloseListener = Callable[ [], None ]
 
 
 class Client:
@@ -57,6 +53,7 @@ class Client:
 	
 	def Stop(self) -> None:
 		if self._running:
+			assert self._rcvThread is not None, 'Why tf is rcvThread None??'
 			self._running = False
 			self._socket.close()
 			self._rcvThread.join()

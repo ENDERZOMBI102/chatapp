@@ -1,14 +1,14 @@
 from client.Client import Client
 from data import Message
 
-recvSomething: bool = False
+recvSomething: int = 0
 
 
 def main() -> None:
 	def onMessage(msg: Message) -> None:
 		global recvSomething
 		print(f'[{msg.author}]: {msg.content}')
-		recvSomething = True
+		recvSomething += 1
 	
 	global recvSomething
 	with Client() as client:
@@ -18,7 +18,7 @@ def main() -> None:
 		client.SetAddress('127.0.0.1', 20307)
 		client.SetUsername('PythonTest')
 		print(' - waiting for response...')
-		while not recvSomething:
+		while recvSomething != 2:
 			pass
 		
 
