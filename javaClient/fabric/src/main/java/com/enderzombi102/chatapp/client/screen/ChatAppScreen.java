@@ -36,7 +36,7 @@ public class ChatAppScreen extends SpruceScreen {
 				},
 				btn -> MinecraftClient.getInstance().setScreen(this.parent)
 		);
-		this.addDrawable( containerWidget );
+		this.addDrawableChild( containerWidget );
 	}
 
 	@Override

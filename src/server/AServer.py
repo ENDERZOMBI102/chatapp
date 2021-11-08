@@ -58,7 +58,7 @@ class AServer:
 
 	async def Broadcast( self, msg: Message, sender: ClientHandler ):
 		for client in self.clients:
-			if client.alive:
+			if client.isAlive():
 				if client is not sender:
 					await client.Send(msg)
 			else:

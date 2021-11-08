@@ -31,7 +31,7 @@ class WSClientHandler(BaseClientHandler):
 
 	async def InputLoop( self ) -> None:
 		try:
-			while self.alive and not self.wsocket.closed:
+			while self.isAlive():
 				async for msg in self.wsocket:
 					assert isinstance( msg, str ), 'got invalid message in bytes from web client, wtf?'
 					try:
@@ -40,7 +40,10 @@ class WSClientHandler(BaseClientHandler):
 						await self.wsocket.send( f'Expected JSON Message object, got {msg}: { util.getException(e) }' )
 		except ConnectionClosedError as e:
 			print('CCE:', e)
-		self.alive = False
+		self._alive = False
 
 	async def CheckErrors( self ) -> None:
 		pass
+	
+	def isAlive( self ) -> bool:
+		return self._alive and not self.wsocket.closed

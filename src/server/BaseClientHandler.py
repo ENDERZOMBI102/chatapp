@@ -1,13 +1,13 @@
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
-from time import time
+from time import time_ns
 
 from data import Message
 
 
 class BaseClientHandler(metaclass=ABCMeta):
 
-	alive: bool = True
+	_alive: bool = True
 	addr: str
 	# noinspection PyUnresolvedReferences
 	server: 'AServer'
@@ -29,7 +29,11 @@ class BaseClientHandler(metaclass=ABCMeta):
 	@abstractmethod
 	async def CheckErrors( self ) -> None:
 		pass
-
+	
+	@abstractmethod
+	def isAlive( self ) -> bool:
+		pass
+	
 	async def ReplacePlaceholders( self, msg: Message ) -> Message:
 		msg.content = (
 			msg.content.replace( '{username}', self.username )
@@ -54,18 +58,18 @@ class BaseClientHandler(metaclass=ABCMeta):
 			self.username = cmd[ 1 ]
 			if oldname == 'unregistered':
 				await self.server.Broadcast(
-					msg=Message( 'system', f'{self.username} joined the server', time() ),
+					msg=Message( 'system', f'{self.username} joined the server', time_ns() ),
 					sender=self
 				)
-				await self.Send( Message( 'system', f'joined "{self.server.name}"', time() ) )
-				await self.Send( Message( 'system', f'MOTD:\n{self.server.motd}', time() ) )
+				await self.Send( Message( 'system', f'joined "{self.server.name}"', time_ns() ) )
+				await self.Send( Message( 'system', f'MOTD:\n{self.server.motd}', time_ns() ) )
 			else:
 				await self.server.Broadcast(
-					msg=Message( 'system', f'{oldname} changed his name to {self.username}', time() ),
+					msg=Message( 'system', f'{oldname} changed his name to {self.username}', time_ns() ),
 					sender=self
 				)
-				await self.Send( Message( 'system', 'changed name to {username}', time() ) )
+				await self.Send( Message( 'system', 'changed name to {username}', time_ns() ) )
 		elif cmd[ 0 ] == 'SSERVER':
 			raise KeyboardInterrupt
 		else:
-			await self.Send( Message( 'system', f'unknown command {cmd}', time() ) )
+			await self.Send( Message( 'system', f'unknown command {cmd}', time_ns() ) )

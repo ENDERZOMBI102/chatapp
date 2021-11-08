@@ -1,32 +1,40 @@
 package com.enderzombi102.chatapp;
 
+import com.enderzombi102.chatapp.api.CloseCallback;
+import com.enderzombi102.chatapp.api.MessageCallback;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
-import java.util.function.Consumer;
 
 import static com.enderzombi102.chatapp.Util.format;
 
 
 @SuppressWarnings("unused")
-public final class Client implements AutoCloseable {
+public final class Client implements com.enderzombi102.chatapp.api.Client {
 	private static final Logger LOGGER = LogManager.getLogger("CA-Client");
 
 	private Socket socket;
+	private DataOutputStream stream;
 	private String host = "127.0.0.1";
 	private int port = 20307;
 	private boolean running = false;
-	private Consumer<Message> OnMessage;
+	private MessageCallback messageCallback = System.out::println;
+	private CloseCallback closeCallback = () -> {};
 	private final Thread rcvThread = new Thread(this::rcv);
-	public boolean ignoreErrors = true;
+	private boolean calledOnClose = false;
+	public boolean ignoreErrors = false;
+
+	public Client( final @NotNull MessageCallback messageCallback ) {
+		this.messageCallback = messageCallback;
+	}
+
+	public Client() {}
 
 	public void setAddress( @NotNull String host, int port ) {
 		LOGGER.info( format("changing server to {}:{}!", host, port) );
@@ -42,8 +50,14 @@ public final class Client implements AutoCloseable {
 			}
 		}
 		try {
+			this.calledOnClose = false;
 			this.socket = new Socket(this.host, this.port);
-		} catch (IOException ignored) { /* this should never happen */ }
+			this.stream = new DataOutputStream( this.socket.getOutputStream() );
+		} catch (IOException e) {
+			/* this should never happen, but lets handle it anyway */
+			LOGGER.error("could not create new connection, invalid host:port pair!");
+			throw new IllegalArgumentException("could not create new connection", e);
+		}
 		this.run();
 		LOGGER.info("new connection created!");
 	}
@@ -55,26 +69,32 @@ public final class Client implements AutoCloseable {
 	public void setUsername( @NotNull String username) {
 		LOGGER.info( format( "changing username to {}", username ) );
 		if ( this.running )
-			this.send( new Message( "system", format(":CHGUNAME:", username ), null ) );
+			this.send( new Message( "system", format(":CHGUNAME:{}", username ), null ) );
 	}
 
 	public String getAddress() {
 		return format("{}:{}", this.host, this.port);
 	}
 
-	public void setListener( @NotNull Consumer<Message> func ) {
-		this.OnMessage = func;
+	public void setListener( @NotNull MessageCallback func ) {
+		this.messageCallback = func;
 	}
 
-	public void send( @NotNull Message msg) {
+	public void setListener( @NotNull CloseCallback func ) {
+		this.closeCallback = func;
+	}
+
+	public void send( @NotNull Message msg ) {
+		if (! this.running )
+			return;
+
 		var msgRaw = msg.toJson().getBytes(StandardCharsets.UTF_8);
-		var header = ByteBuffer.allocate( 64 )
-				.order(ByteOrder.LITTLE_ENDIAN)
-				.putInt(msgRaw.length)
-				.array();
+		var header = msgRaw.length;
 		try {
-			this.socket.getOutputStream().write( header );
-			this.socket.getOutputStream().write( msgRaw );
+			var os = this.stream;
+			os.writeInt( header );
+			os.write( msgRaw );
+			os.flush();
 		} catch (IOException e) {
 			LOGGER.error("this should never happen", e);
 		}
@@ -89,6 +109,14 @@ public final class Client implements AutoCloseable {
 			} catch (IOException | InterruptedException e) {
 				e.printStackTrace();
 			}
+			this.onClose();
+		}
+	}
+
+	private void onClose() {
+		if (! this.calledOnClose) {
+			this.closeCallback.onCLose();
+			this.calledOnClose = true;
 		}
 	}
 
@@ -98,43 +126,39 @@ public final class Client implements AutoCloseable {
 	}
 
 	private void rcv() throws RuntimeException {
-		InputStream input;
+		DataInputStream input;
 		try {
-			input = this.socket.getInputStream();
+			input = new DataInputStream( this.socket.getInputStream() );
 		} catch (IOException e) {
 			LOGGER.error( "this should never happen", e );
 			return;
 		}
 
-		while ( this.running ) {
-			byte[] rawSize;
+		while ( this.running && (! this.socket.isClosed() ) ) {
+			int size;
 			try {
-				rawSize = input.readNBytes(64);
+				size = input.readInt();
 			} catch (IOException e) {
 				if ( this.ignoreErrors ) {
 					continue;
 				} else if ( this.running ) {
 					this.running = false;
+					this.onClose();
 					throw new RuntimeException(e);
 				} else {
 					// closed by Client.stop()
 					return;
 				}
 			}
-			var size = ByteBuffer.wrap(rawSize)
-					.order(ByteOrder.LITTLE_ENDIAN)
-					.getInt();
+
 			if ( size == 0 )
 				continue;
 
 			LOGGER.info( format( "incoming message size: {}", size ) );
 			try {
-				this.OnMessage.accept(
+				this.messageCallback.onMessage(
 						Message.fromJson(
-								ByteBuffer.wrap(input.readNBytes(size))
-										.order(ByteOrder.LITTLE_ENDIAN)
-										.asCharBuffer()
-										.toString()
+								new String( input.readNBytes(size) )
 						)
 				);
 			} catch (IOException e) {
@@ -146,17 +170,5 @@ public final class Client implements AutoCloseable {
 	@Override
 	public void close() {
 		this.stop();
-	}
-
-	public static boolean checkIsValid(String host, int port) {
-		try {
-			return ! new InetSocketAddress(host, port).isUnresolved();
-		} catch (IllegalArgumentException ignored) {
-			return false;
-		}
-	}
-
-	public static boolean checkIsValid(String host, String port) {
-		return checkIsValid( host, Integer.getInteger(port) );
 	}
 }

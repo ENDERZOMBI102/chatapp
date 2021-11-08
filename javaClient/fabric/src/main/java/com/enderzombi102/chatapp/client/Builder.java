@@ -16,7 +16,7 @@ public class Builder {
 	public static SpruceContainerWidget buildTextAreaContainer(Position position, int width, int height,
 															   Consumer<SpruceTextAreaWidget> textAreaConsumer,
 															   @Nullable SpruceButtonWidget.PressAction doneButtonAction) {
-		int textFieldWidth = (int) (width * (3.0 / 4.0));
+		int textFieldWidth = (int) ( width * (3.0 / 4.0) );
 		SpruceTextAreaWidget textArea = new SpruceTextAreaWidget(
 				Position.of(width / 2 - textFieldWidth / 2, 0),
 				textFieldWidth,

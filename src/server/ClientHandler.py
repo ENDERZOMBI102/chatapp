@@ -26,27 +26,33 @@ class ClientHandler(BaseClientHandler):
 		self._errorCheckTask = asyncio.create_task( self.CheckErrors() )
 
 	async def Send( self, message: Message ) -> None:
-		message = await self.ReplacePlaceholders(message)
-		enc_message = message.toJson().encode( 'utf8' )
-		header = int.to_bytes( len( enc_message ), length=64, byteorder='little' )
-		self.writer.write( header )
-		self.writer.write( enc_message )
-		await self.writer.drain()
+		if self.isAlive():
+			message = await self.ReplacePlaceholders(message)
+			enc_message = message.toJson().encode( 'utf8' )
+			header = int.to_bytes( len( enc_message ), length=4, byteorder='big' )
+			self.writer.write( header )
+			self.writer.write( enc_message )
+			await self.writer.drain()
 
-	async def CheckErrors( self ):
+	async def CheckErrors( self ) -> None:
 		while True:
 			await asyncio.sleep(10)
 			exc: Exception = self.reader.exception()
 			if exc is not None:
 				if isinstance( exc, ConnectionResetError ):
-					self.alive = False
+					self._alive = False
 					break
 				print('Exception on reader:')
 				traceback.print_exception( type( exc ), exc, exc.__traceback__ )
 
-	async def InputLoop( self ):
-		while self.alive and not self.writer.is_closing():
-			size = int.from_bytes( await self.reader.read( 64 ), 'little' )
+	async def InputLoop( self ) -> None:
+		while (
+				self.isAlive() and (
+					self.reader.exception() is None or
+					isinstance( self.reader.exception(), ConnectionResetError )
+				)
+		):
+			size = int.from_bytes( await self.reader.read( 4 ), 'big' )
 			msg = Message.fromJson(
 				(
 					await self.reader.read(size)
@@ -55,4 +61,7 @@ class ClientHandler(BaseClientHandler):
 			await self.HandleMessage(msg)
 
 		print( f'closed connection to [{self.addr}]' )
-		self.alive = False
+		self._alive = False
+		
+	def isAlive( self ) -> bool:
+		return self._alive and not self.writer.is_closing()

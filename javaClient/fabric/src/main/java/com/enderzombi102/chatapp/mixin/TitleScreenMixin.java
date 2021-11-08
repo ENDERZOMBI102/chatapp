@@ -21,7 +21,7 @@ public class TitleScreenMixin extends Screen {
 
 	@Inject(method = "init", at = @At("RETURN"))
 	private void onInit(CallbackInfo ci) {
-		this.addDrawable(
+		this.addDrawableChild(
 				new SpruceButtonWidget(
 						Position.of(0, 12),
 						150,
