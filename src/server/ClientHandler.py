@@ -7,7 +7,6 @@ from data import Message
 
 
 class ClientHandler(BaseClientHandler):
-
 	_inputTask: Task
 	_errorCheckTask: Task
 	reader: StreamReader
@@ -44,10 +43,10 @@ class ClientHandler(BaseClientHandler):
 
 	async def InputLoop( self ) -> None:
 		while (
-				self.isAlive() and (
-					self.reader.exception() is None or
-					isinstance( self.reader.exception(), ConnectionResetError )
-				)
+			self.isAlive() and (
+				self.reader.exception() is None or
+				isinstance( self.reader.exception(), ConnectionResetError )
+			)
 		):
 			size = int.from_bytes( await self.reader.read( 4 ), 'big' )
 			msg = Message.fromJson(

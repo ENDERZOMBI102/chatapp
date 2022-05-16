@@ -4,7 +4,6 @@ import socketserver as ss
 
 
 class ReqHandler(ss.StreamRequestHandler):
-
 	request: socket.socket
 	# noinspection PyUnresolvedReferences
 	server: 'Server'

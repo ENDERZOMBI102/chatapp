@@ -12,16 +12,12 @@ from data import Message
 
 
 class PlaceholderServer:
-
-	async def __aenter__(self):
-		pass
-
-	async def __aexit__(self, exc_type, exc_val, exc_tb):
-		pass
+	def __init__( self ): ...
+	async def __aenter__(self): ...
+	async def __aexit__(self, exc_type, exc_val, exc_tb): ...
 
 
 class AServer:
-
 	_clients: list[BaseClientHandler] = []
 	_useWS: bool
 	_wsServer: Union[Serve, PlaceholderServer] = PlaceholderServer()

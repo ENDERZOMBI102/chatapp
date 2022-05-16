@@ -14,7 +14,6 @@ kivy.require('2.0.0')  # replace with your current kivy version !
 
 
 class ChatApp(App):
-
     client: Client
     chat: TextInput
     input: TextInput

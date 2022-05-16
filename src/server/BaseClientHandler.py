@@ -6,7 +6,6 @@ from data import Message
 
 
 class BaseClientHandler(metaclass=ABCMeta):
-
 	_alive: bool = True
 	addr: str
 	# noinspection PyUnresolvedReferences

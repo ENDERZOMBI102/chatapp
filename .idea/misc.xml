@@ -4,7 +4,5 @@
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/javaClient" />
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_16" project-jdk-name="16" project-jdk-type="JavaSDK">
-    <output url="file://$PROJECT_DIR$/javaClient/build" />
-  </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="Poetry (chatapp)" project-jdk-type="Python SDK" />
 </project>
