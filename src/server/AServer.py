@@ -62,14 +62,26 @@ class AServer:
 				print( f'websockets listening on 0.0.0.0:{self._port + 1}' )
 			await self._server.serve_forever()
 
-	async def broadcast( self, msg: Message, sender: ClientHandler ):
+	async def broadcast( self, msg: Message, sender: BaseClientHandler ):
+		closed: int = 0
 		for client in self._clients:
 			if client.isAlive():
 				if client is not sender:
 					await client.Send(msg)
 			else:
-				print(f'Found closed client: {client.addr}')
+				closed += 1
 				self._clients.remove(client)
+		if closed:
+			print( f'Found {closed} closed clients' )
+
+	def getName( self ) -> str:
+		return self._name
+
+	def getMotd( self ) -> str:
+		return self._motd
+
+	def checkPassword( self, passwd: str ) -> bool:
+		return self._password == passwd
 
 	def start( self ):
 		asyncio.run( self._run_server() )

@@ -1,19 +1,25 @@
+from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 from datetime import datetime
 from time import time_ns
+from typing import TYPE_CHECKING
 
 from data import Message
+
+if TYPE_CHECKING:
+	from AServer import AServer
 
 
 class BaseClientHandler(metaclass=ABCMeta):
 	_alive: bool = True
 	addr: str
 	# noinspection PyUnresolvedReferences
-	server: 'AServer'
+	server: AServer
 	username: str = 'unregistered'
+	permissions: dict[ str, bool ] = { 'shutdownServer': False }
 
 	# noinspection PyUnresolvedReferences
-	def __init__(self, server: 'AServer', addr: str):
+	def __init__(self, server: AServer, addr: str):
 		self.server, self.addr = server, addr
 		print( f'connection established to [{self.addr}]' )
 
@@ -34,15 +40,15 @@ class BaseClientHandler(metaclass=ABCMeta):
 		pass
 	
 	async def ReplacePlaceholders( self, msg: Message ) -> Message:
-		msg.content = (
-			msg.content.replace( '{username}', self.username )
-			.replace('{time}', datetime.now().strftime("%H:%M") )
-			.replace('{servername}', self.server.name)
+		msg.content = msg.content.format(
+			username=self.username,
+			time=datetime.now().strftime("%H:%M"),
+			servername=self.server.getName()
 		)
 		return msg
 
 	async def HandleMessage( self, msg: Message ):
-		print( f'[{self.addr}] {msg}' )
+		print( f'[{self.addr}] -> {msg}' )
 		# handle commands
 		if msg.content.startswith( ':' ):
 			await self.HandleCommand( msg )
@@ -51,7 +57,7 @@ class BaseClientHandler(metaclass=ABCMeta):
 			await self.server.broadcast( msg, self )
 
 	async def HandleCommand( self, msg: Message ):
-		cmd = msg.content.removeprefix( ':' ).split( ':' )
+		cmd = msg.content[1:].split( ':' )
 		if cmd[ 0 ] == 'CHGUNAME':
 			oldname = self.username
 			self.username = cmd[ 1 ]
@@ -60,8 +66,8 @@ class BaseClientHandler(metaclass=ABCMeta):
 					msg=Message( 'system', f'{self.username} joined the server', time_ns() ),
 					sender=self
 				)
-				await self.Send( Message( 'system', f'joined "{self.server.name}"', time_ns() ) )
-				await self.Send( Message( 'system', f'MOTD:\n{self.server.motd}', time_ns() ) )
+				await self.Send( Message( 'system', f'joined "{self.server.getName()}"', time_ns() ) )
+				await self.Send( Message( 'system', f'MOTD:\n{self.server.getMotd()}', time_ns() ) )
 			else:
 				await self.server.broadcast(
 					msg=Message( 'system', f'{oldname} changed his name to {self.username}', time_ns() ),
@@ -69,6 +75,9 @@ class BaseClientHandler(metaclass=ABCMeta):
 				)
 				await self.Send( Message( 'system', 'changed name to {username}', time_ns() ) )
 		elif cmd[ 0 ] == 'SSERVER':
-			raise KeyboardInterrupt
+			if self.permissions['shutdownServer']:
+				raise KeyboardInterrupt
+			else:
+				await self.Send( Message( 'system', 'i\'m afraid i cannot do that, {username}.', time_ns() ) )
 		else:
 			await self.Send( Message( 'system', f'unknown command {cmd}', time_ns() ) )
