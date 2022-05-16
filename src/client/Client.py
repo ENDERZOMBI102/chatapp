@@ -13,9 +13,10 @@ class Client:
 	_port: int = 20307
 	_running: bool = False
 	_messageCallback: MessageListener
-	_closeCallback: CloseListener = lambda: None
+	_closeCallback: CloseListener = lambda client: None
 	_rcvThread: Optional[threading.Thread] = None
 	_calledOnClose: bool = False
+	_uname: str
 	ignoreErrors: bool = True
 	
 	def setAddress( self, host: str, port: Union[ int, str ] = 20307 ) -> None:
@@ -33,6 +34,7 @@ class Client:
 	
 	def setUsername( self, uname: str ) -> None:
 		logger.info(f'changing username to {uname}')
+		self._uname = uname
 		self.send( Message( 'system', f':CHGUNAME:{uname}' ) )
 	
 	def getAddress( self ) -> str:
@@ -44,10 +46,12 @@ class Client:
 	def setCloseListener( self, func: CloseListener ) -> None:
 		self._closeCallback = func
 	
-	def send( self, msg: Message ) -> None:
+	def send( self, msg: Message | str ) -> None:
 		if self._running:
+			if isinstance( msg, str ):
+				msg = Message( self._uname, msg )
 			msgRaw: bytes = msg.toJson().encode()
-			header = int.to_bytes( len(msgRaw), 4, 'big')
+			header = int.to_bytes( len(msgRaw), 4, 'big' )
 			self._socket.send(header)
 			self._socket.send(msgRaw)
 	
@@ -89,19 +93,15 @@ class Client:
 			if size == 0:
 				continue
 			logger.info(f'incoming message size: {size}')
-			self._messageCallback(
-				Message.fromJson(
-					self._socket.recv(size).decode()  # decode() will from UTF-8 if no argument is given
-				)
-			)
+			self._messageCallback( Message.fromJson( self._socket.recv(size).decode() ) )
 	
 	def __del__(self) -> None:
 		self.stop()
-		
+
 	def __enter__(self) -> 'Client':
 		return self
 	
-	def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+	def __exit__( self, exc_type, exc_val, exc_tb ) -> None:
 		self.stop()
 	
 	@staticmethod
