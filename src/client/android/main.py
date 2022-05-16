@@ -47,7 +47,7 @@ class ChatApp(App):
         layout.add_widget( self.chat )
         layout.add_widget( self.input )
 
-        self.client.SetMessageListener( self.OnMessage )
+        self.client.setMessageListener( self.OnMessage )
 
         return layout
 
@@ -56,7 +56,7 @@ class ChatApp(App):
         message = instance.text.strip()
         self.chat.text += f'[{self.username}] {message}\n'
         instance.text = ''
-        self.client.Send(message)
+        self.client.send( message )
 
     def OnMessage( self, msg: Message ) -> None:
         self.chat.text += f'{msg.content}\n'

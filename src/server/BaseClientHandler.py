@@ -48,7 +48,7 @@ class BaseClientHandler(metaclass=ABCMeta):
 			await self.HandleCommand( msg )
 		else:
 			msg.content = f'[{self.username}] {msg.content}'
-			await self.server.Broadcast( msg, self )
+			await self.server.broadcast( msg, self )
 
 	async def HandleCommand( self, msg: Message ):
 		cmd = msg.content.removeprefix( ':' ).split( ':' )
@@ -56,14 +56,14 @@ class BaseClientHandler(metaclass=ABCMeta):
 			oldname = self.username
 			self.username = cmd[ 1 ]
 			if oldname == 'unregistered':
-				await self.server.Broadcast(
+				await self.server.broadcast(
 					msg=Message( 'system', f'{self.username} joined the server', time_ns() ),
 					sender=self
 				)
 				await self.Send( Message( 'system', f'joined "{self.server.name}"', time_ns() ) )
 				await self.Send( Message( 'system', f'MOTD:\n{self.server.motd}', time_ns() ) )
 			else:
-				await self.server.Broadcast(
+				await self.server.broadcast(
 					msg=Message( 'system', f'{oldname} changed his name to {self.username}', time_ns() ),
 					sender=self
 				)

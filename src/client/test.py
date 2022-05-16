@@ -12,11 +12,11 @@ def main() -> None:
 	
 	global recvSomething
 	with Client() as client:
-		client.SetCloseListener( lambda: print(' - closed') )
-		client.SetMessageListener( onMessage )
+		client.setCloseListener( lambda: print( ' - closed' ) )
+		client.setMessageListener( onMessage )
 		print(' - connecting...')
-		client.SetAddress('127.0.0.1', 20307)
-		client.SetUsername('PythonTest')
+		client.setAddress( '127.0.0.1', 20307 )
+		client.setUsername( 'PythonTest' )
 		print(' - waiting for response...')
 		while recvSomething != 2:
 			pass

@@ -18,7 +18,7 @@ class Client:
 	_calledOnClose: bool = False
 	ignoreErrors: bool = True
 	
-	def SetAddress(self, host: str, port: Union[int, str] = 20307) -> None:
+	def setAddress( self, host: str, port: Union[ int, str ] = 20307 ) -> None:
 		logger.info(f'changing server to {host}:{port}!')
 		self._host = host
 		self._port = int(port)
@@ -31,27 +31,27 @@ class Client:
 		self._run()
 		logger.info('new connection created!')
 	
-	def SetUsername(self, uname: str) -> None:
+	def setUsername( self, uname: str ) -> None:
 		logger.info(f'changing username to {uname}')
-		self.Send( Message( 'system', f':CHGUNAME:{uname}' ) )
+		self.send( Message( 'system', f':CHGUNAME:{uname}' ) )
 	
-	def GetAddress(self) -> str:
+	def getAddress( self ) -> str:
 		return f'{self._host}:{self._port}'
 	
-	def SetMessageListener( self, func: MessageListener) -> None:
+	def setMessageListener( self, func: MessageListener ) -> None:
 		self._messageCallback = func
 		
-	def SetCloseListener( self, func: CloseListener) -> None:
+	def setCloseListener( self, func: CloseListener ) -> None:
 		self._closeCallback = func
 	
-	def Send( self, msg: Message ) -> None:
+	def send( self, msg: Message ) -> None:
 		if self._running:
 			msgRaw: bytes = msg.toJson().encode()
 			header = int.to_bytes( len(msgRaw), 4, 'big')
 			self._socket.send(header)
 			self._socket.send(msgRaw)
 	
-	def Stop(self) -> None:
+	def stop( self ) -> None:
 		if self._running:
 			assert self._rcvThread is not None, 'Why tf is rcvThread None??'
 			self._running = False
@@ -96,13 +96,13 @@ class Client:
 			)
 	
 	def __del__(self) -> None:
-		self.Stop()
+		self.stop()
 		
 	def __enter__(self) -> 'Client':
 		return self
 	
 	def __exit__(self, exc_type, exc_val, exc_tb) -> None:
-		self.Stop()
+		self.stop()
 	
 	@staticmethod
 	def CheckIsValid( host: str, port: Union[int, str] ) -> bool:

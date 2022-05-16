@@ -37,13 +37,11 @@ def main(scrn):
 	line: int = 0
 
 	client: Client = Client()
-	client.SetListener( lambda msg: inboundMessageQueue.put(msg) )
+	client.setMessageListener( lambda msg: inboundMessageQueue.put(msg) )
 
 	host, port = options.address.split(':')
-	client.SetAddress(host, port)
-
-	client.Run()
-	client.SetUsername(options.username)
+	client.setAddress( host, port )
+	client.setUsername( options.username )
 
 	scrn.addstr( 0, 0, f'Logged in as {options.username}' )
 	# event loop
@@ -67,7 +65,7 @@ def main(scrn):
 					scrn.move( line, 0 )
 					scrn.deleteln()
 					scrn.addstr( line, 0, string )
-					client.Send(string)
+					client.send( string )
 					string = ''
 					
 			for i in range( inboundMessageQueue.qsize() ):

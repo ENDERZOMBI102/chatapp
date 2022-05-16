@@ -37,12 +37,12 @@ def main() -> None:
 	# create client object
 	client: Client.Client = Client.Client()
 	# set listener function
-	client.SetMessageListener( lambda msg: print( msg.content ) )
+	client.setMessageListener( lambda msg: print( msg.content ) )
 	
 	# setup client
 	host, port = options.address.split(':')
-	client.SetAddress(host, port)
-	client.SetUsername( options.username )
+	client.setAddress( host, port )
+	client.setUsername( options.username )
 	
 	# event loop
 	while True:
@@ -54,17 +54,17 @@ def main() -> None:
 			# change user name
 			if txt.startswith(':name '):
 				newName = txt.split(' ')[1]
-				client.SetUsername(newName)
+				client.setUsername( newName )
 				options.username = newName
 			# change server
 			elif txt.startswith(':server '):
 				host, port = txt.replace(':server ', '').split(':')
-				client.SetAddress(host, port)
+				client.setAddress( host, port )
 			# quit
 			elif txt.startswith(':quit '):
 				break
 			continue
-		client.Send( Message( options.username, txt, time.time() ) )
+		client.send( Message( options.username, txt, time.time() ) )
 	
 	# destruct client
 	del client

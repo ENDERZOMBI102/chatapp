@@ -103,7 +103,7 @@ class ClientWindow(wx.Frame):
 		self.Bind( wx.EVT_TEXT_ENTER, self.OnEnterPressed, self.input )
 
 	def OnClose(self, evt: wx.CommandEvent = None) -> None:
-		self.client.Stop()
+		self.client.stop()
 		self.Destroy()
 
 	def OnResize(self, evt: wx.Event) -> None:
@@ -113,7 +113,7 @@ class ClientWindow(wx.Frame):
 
 	def OnEnterPressed(self, evt: wx.CommandEvent ) -> None:
 		text = self.input.GetValue()
-		self.client.Send( Message( self.username, text, time() ) )
+		self.client.send( Message( self.username, text, time() ) )
 		self.chat.AppendText(f'[{self.username}] {text}\n')
 		self.input.Clear()
 
@@ -139,7 +139,7 @@ class ClientWindow(wx.Frame):
 			parent=self,
 			message='Insert server address (host:port)',
 			caption='Connect to server',
-			value=self.client.GetAddress()
+			value=self.client.getAddress()
 		)
 		if dialog.ShowModal() == wx.ID_OK:
 			pair: list[str] = dialog.GetValue().split(':')
@@ -154,13 +154,13 @@ class ClientWindow(wx.Frame):
 				self.AppendStyled( f'invalid address "{host}:{port}"!', self.colors.FindColour('red') )
 			else:
 				self.Reset()
-				self.client.SetAddress(host, port)
-				self.client.Send( Message( self.username, f':CHGUNAME:{self.username}' ) )
+				self.client.setAddress( host, port )
+				self.client.send( Message( self.username, f':CHGUNAME:{self.username}' ) )
 				self.input.Enable()
 				self.menus['disconnect'].Enable()
 
 	def disconnect( self, evt: wx.CommandEvent ) -> None:
-		self.client.Stop()
+		self.client.stop()
 		self.menus[ 'disconnect' ].Enable( False )
 		self.Reset()
 		self.AppendStyled( 'disconnected from server', self.colors.FindColour('blue') )
@@ -178,7 +178,7 @@ class ClientWindow(wx.Frame):
 				self.AppendStyled( f'invalid username "{username}"!', self.colors.FindColour('red') )
 			else:
 				self.username = username
-				self.client.Send( Message( 'system', f':CHGUNAME:{self.username}' ) )
+				self.client.send( Message( 'system', f':CHGUNAME:{self.username}' ) )
 
 	def about(self, evt: wx.CommandEvent) -> None:
 		wx.GenericMessageDialog(

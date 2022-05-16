@@ -51,18 +51,18 @@ class AServer:
 
 	async def _run_server(self):
 		print( 'starting server' )
-		self.server = await asyncio.start_server( self._handleClient, '0.0.0.0', self._port )
+		self._server = await asyncio.start_server( self._handleClient, '0.0.0.0', self._port )
 		if self._useWS:
-			self.wsServer = websockets.serve( self._handleWSClient, '0.0.0.0', self._port + 1 )
-		self.gcFuture = asyncio.create_task( self._startGarbageCollector() )
-		async with self.server, self.wsServer:
+			self._wsServer = websockets.serve( self._handleWSClient, '0.0.0.0', self._port + 1 )
+		self._gcFuture = asyncio.create_task( self._startGarbageCollector() )
+		async with self._server, self._wsServer:
 			print( 'server started' )
 			print( f'{"sockets " if self._useWS else ""}listening on 0.0.0.0:{self._port}' )
 			if self._useWS:
 				print( f'websockets listening on 0.0.0.0:{self._port + 1}' )
-			await self.server.serve_forever()
+			await self._server.serve_forever()
 
-	async def Broadcast( self, msg: Message, sender: ClientHandler ):
+	async def broadcast( self, msg: Message, sender: ClientHandler ):
 		for client in self._clients:
 			if client.isAlive():
 				if client is not sender:
@@ -71,6 +71,6 @@ class AServer:
 				print(f'Found closed client: {client.addr}')
 				self._clients.remove(client)
 
-	def Start( self ):
+	def start( self ):
 		asyncio.run( self._run_server() )
 	
