@@ -17,7 +17,7 @@ class Message:
 		return json.dumps( self.__dict__ )
 
 	def __repr__(self) -> str:
-		return f'[{self.author}] {self.content}'
+		return self.content
 
 
 class MessageListener(Protocol):

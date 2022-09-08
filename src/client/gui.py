@@ -96,7 +96,7 @@ class ClientWindow(wx.Frame):
 
 		# create Client thread
 		self.client = Client()
-		self.client.SetListener( self.OnMessage )
+		self.client.setMessageListener( self.OnMessage )
 
 		self.Bind( wx.EVT_CLOSE, self.OnClose, self )
 		self.Bind( wx.EVT_SIZING, self.OnResize, self )

@@ -1,14 +1,8 @@
 from sys import argv
 
 if '--server' in argv:
-	if '--old' in argv:
-		from server.server import Server
-
-		Server()
-	else:
-		from server.AServer import AServer
-
-		AServer( websocket='--websocket' in argv ).start()
+	from server.Server import AServer
+	AServer( websocket='--websocket' in argv ).start()
 
 elif '--bcli' in argv:
 	from client import bcli

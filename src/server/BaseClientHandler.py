@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from data import Message
 
 if TYPE_CHECKING:
-	from AServer import AServer
+	from Server import AServer
 
 
 class BaseClientHandler(metaclass=ABCMeta):

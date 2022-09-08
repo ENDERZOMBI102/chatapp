@@ -1,13 +1,12 @@
 import asyncio
-import traceback
 from json import JSONDecodeError
 
 from websockets.exceptions import ConnectionClosedError
 from websockets.legacy.server import WebSocketServerProtocol
 
 import util
-from .BaseClientHandler import BaseClientHandler
 from data import Message
+from .BaseClientHandler import BaseClientHandler
 
 
 class WSClientHandler(BaseClientHandler):
